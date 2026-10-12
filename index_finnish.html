@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f4ed">
+  <title>Sanasto — finská slovní zásoba</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: light-dark(#f4f4ed, #171a17);
+      --surface: light-dark(#ffffff, #222722);
+      --surface-soft: light-dark(#f8f8f3, #292f29);
+      --ink: light-dark(#222c23, #edf2e9);
+      --muted: light-dark(#687268, #a6b0a4);
+      --line: light-dark(#dfe4d8, #3c453c);
+      --green: light-dark(#315f43, #9fce9c);
+      --green-deep: light-dark(#244b34, #23492e);
+      --green-pale: light-dark(#e9f1e5, #293e2d);
+      --orange: light-dark(#ad6835, #e8ac76);
+      --orange-pale: light-dark(#fbefe3, #443428);
+      --red: light-dark(#a14940, #efa49b);
+      --shadow: 0 18px 48px light-dark(rgb(41 54 36 / 7%), rgb(0 0 0 / 23%));
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--page); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+    #app { min-height: 100vh; width: 100%; background-color: var(--page); border-radius: 0; }
+    .shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; padding: 24px 0 48px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 34px; }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.04em; font-size: 1.18rem; }
+    .brand-mark { width: 38px; height: 38px; border-radius: 13px; background: var(--green); color: #fff; display: grid; place-items: center; font-size: 1.05rem; font-weight: 900; letter-spacing: -.05em; }
+    .brand small { display: block; font-size: .68rem; color: var(--muted); font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+    .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 13px; padding: 10px 15px; font-weight: 700; font-size: .9rem; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+    .button:hover { transform: translateY(-1px); border-color: var(--green); }
+    .button.primary { color: #fff; background: #315f43; border-color: #315f43; }
+    .button.primary:hover { background: #244b34; }
+    .button.soft { background: var(--green-pale); border-color: transparent; color: var(--green); }
+    .button.danger-soft { background: var(--orange-pale); color: var(--orange); border-color: transparent; }
+    .button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .eyebrow { color: var(--green); font-size: .73rem; letter-spacing: .13em; text-transform: uppercase; font-weight: 850; margin: 0 0 10px; }
+    .hero { display: grid; grid-template-columns: 1.2fr .8fr; gap: 26px; align-items: end; margin-bottom: 28px; }
+    h1 { margin: 0; font-size: clamp(2.15rem, 4.5vw, 3.65rem); line-height: 1.02; letter-spacing: -.065em; max-width: 740px; }
+    .hero-copy { color: var(--muted); margin: 17px 0 0; max-width: 620px; font-size: 1rem; }
+    .hero-note { background: var(--green-pale); color: var(--green); border-radius: 20px; padding: 20px 22px; border: 1px solid light-dark(#d5e5cf, #344c35); }
+    .hero-note strong { display: block; margin-bottom: 5px; font-size: .97rem; }
+    .hero-note p { margin: 0; font-size: .88rem; color: var(--muted); }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 13px; margin: 28px 0 26px; }
+    .stat { padding: 18px 19px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); min-height: 112px; }
+    .stat-label { color: var(--muted); font-size: .78rem; font-weight: 700; }
+    .stat-number { font-size: 1.8rem; font-weight: 830; letter-spacing: -.06em; line-height: 1.2; margin-top: 9px; }
+    .stat-detail { color: var(--muted); font-size: .75rem; margin-top: 3px; }
+    .nav { display: flex; gap: 7px; border-bottom: 1px solid var(--line); margin: 0 0 22px; overflow-x: auto; }
+    .nav button { position: relative; border: 0; background: transparent; padding: 12px 16px 15px; color: var(--muted); font-weight: 750; white-space: nowrap; }
+    .nav button.active { color: var(--green); }
+    .nav button.active::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--green); }
+    .notice { display: flex; align-items: center; justify-content: space-between; gap: 14px; background: var(--surface-soft); border: 1px solid var(--line); padding: 13px 16px; border-radius: 15px; margin-bottom: 22px; color: var(--muted); font-size: .84rem; }
+    .notice strong { color: var(--ink); }
+    .notice-copy { display: flex; gap: 10px; align-items: center; }
+    .notice-icon { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border-radius: 9px; background: var(--orange-pale); color: var(--orange); font-weight: 900; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 4px 0 18px; }
+    h2 { margin: 0; font-size: 1.5rem; letter-spacing: -.045em; }
+    .section-subtitle { margin: 5px 0 0; color: var(--muted); font-size: .88rem; }
+    .small-label { font-size: .73rem; color: var(--muted); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .study-layout { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(250px, .7fr); gap: 18px; align-items: start; }
+    .card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); overflow: hidden; }
+    .study-card { min-height: 480px; display: flex; flex-direction: column; }
+    .card-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .progress-meta { display: flex; align-items: center; gap: 10px; color: var(--muted); font-weight: 700; font-size: .8rem; }
+    .progress-track { height: 5px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 0 22px; }
+    .progress-fill { height: 100%; width: 0; background: var(--green); border-radius: inherit; transition: width .2s ease; }
+    .card-content { padding: clamp(25px, 5vw, 48px); text-align: center; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .type-chip { border-radius: 999px; display: inline-flex; background: var(--green-pale); color: var(--green); padding: 5px 10px; font-size: .73rem; font-weight: 800; }
+    .lemma-large { font-size: clamp(2.5rem, 7vw, 4.6rem); font-weight: 850; letter-spacing: -.07em; line-height: 1.08; margin: 16px 0 8px; overflow-wrap: anywhere; }
+    .pronunciation-hint { color: var(--muted); font-size: .87rem; }
+    .context-quote { margin: 26px auto 0; max-width: 560px; text-align: left; padding: 15px 17px; border-left: 3px solid var(--green); background: var(--surface-soft); border-radius: 0 12px 12px 0; width: 100%; }
+    .context-quote .quote-label { display: block; font-size: .68rem; font-weight: 850; letter-spacing: .11em; color: var(--muted); text-transform: uppercase; margin-bottom: 5px; }
+    .context-quote p { margin: 0; font-size: .96rem; }
+    .context-quote .context-date { color: var(--muted); font-size: .73rem; margin-top: 7px; }
+    .answer-area { width: 100%; max-width: 510px; margin: 24px auto 0; text-align: left; }
+    .form-label { display: block; font-size: .8rem; font-weight: 800; color: var(--muted); margin: 0 0 7px; }
+    .text-input, .select-input { width: 100%; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--ink); padding: 12px 13px; min-width: 0; }
+    .card-actions { padding: 18px 22px 22px; border-top: 1px solid var(--line); display: flex; gap: 9px; justify-content: center; flex-wrap: wrap; }
+    .side-stack { display: grid; gap: 15px; }
+    .side-card { padding: 20px; }
+    .side-card h3 { margin: 0 0 13px; font-size: 1rem; letter-spacing: -.025em; }
+    .mini-stat { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: .85rem; }
+    .mini-stat:last-child { border: 0; padding-bottom: 0; }
+    .mini-stat span { color: var(--muted); }
+    .queue-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 5px; }
+    .queue-list button { display: flex; width: 100%; gap: 12px; align-items: center; text-align: left; border: 0; border-radius: 11px; background: transparent; padding: 9px 8px; color: var(--ink); }
+    .queue-list button:hover, .queue-list button.selected { background: var(--surface-soft); }
+    .queue-num { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; background: var(--surface-soft); color: var(--muted); font-size: .74rem; font-weight: 850; flex: 0 0 28px; }
+    .queue-term { flex: 1; font-weight: 800; }
+    .queue-count { color: var(--muted); font-size: .76rem; }
+    .toolbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .toolbar .text-input { max-width: 300px; }
+    .quiz-card { padding: clamp(22px, 4vw, 40px); }
+    .quiz-context { font-size: clamp(1.3rem, 3vw, 2rem); line-height: 1.7; letter-spacing: -.025em; font-weight: 650; margin: 25px 0 12px; overflow-wrap: anywhere; }
+    .blank { display: inline-block; background: var(--green-pale); color: var(--green); border-radius: 9px; padding: 1px 11px; border-bottom: 2px solid var(--green); min-width: 82px; text-align: center; }
+    .quiz-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 28px; }
+    .option { border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--ink); padding: 16px; text-align: left; font-weight: 800; display: flex; justify-content: space-between; gap: 10px; }
+    .option:hover:not(:disabled) { border-color: var(--green); background: var(--green-pale); }
+    .option.correct { border-color: var(--green); background: var(--green-pale); color: var(--green); }
+    .option.incorrect { border-color: var(--red); background: var(--orange-pale); color: var(--red); }
+    .quiz-feedback { margin-top: 15px; border-radius: 13px; padding: 13px 15px; background: var(--surface-soft); color: var(--muted); font-size: .9rem; }
+    .quiz-feedback strong { color: var(--ink); }
+    .dictionary-tools { display: grid; grid-template-columns: minmax(210px, 1fr) 190px 190px; gap: 10px; margin: 18px 0; }
+    .dictionary-summary { color: var(--muted); font-size: .82rem; margin-bottom: 12px; }
+    .word-list { display: grid; gap: 10px; }
+    .word-row { background: var(--surface); border: 1px solid var(--line); border-radius: 17px; padding: 17px 18px; }
+    .word-row-head { display: grid; grid-template-columns: minmax(130px, .8fr) minmax(150px, 1.2fr) auto; gap: 14px; align-items: center; }
+    .word-title { font-size: 1.14rem; font-weight: 850; letter-spacing: -.04em; overflow-wrap: anywhere; }
+    .word-meta { color: var(--muted); font-size: .75rem; margin-top: 3px; }
+    .word-frequency { text-align: right; white-space: nowrap; }
+    .word-frequency strong { display: block; font-size: 1.05rem; }
+    .word-frequency span { display: block; color: var(--muted); font-size: .72rem; }
+    .meaning-edit { display: flex; gap: 7px; min-width: 0; }
+    .meaning-edit .text-input { padding: 9px 10px; font-size: .84rem; }
+    .meaning-edit .button { padding: 8px 11px; font-size: .8rem; }
+    .word-row-foot { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 13px; }
+    .form-chip { border: 1px solid var(--line); color: var(--muted); padding: 4px 8px; border-radius: 9px; font-size: .73rem; }
+    .subtle-button { border: 0; background: transparent; color: var(--green); font-weight: 800; font-size: .79rem; padding: 6px 3px; }
+    .context-list { margin-top: 13px; display: grid; gap: 8px; }
+    .context-item { border-left: 2px solid var(--line); padding: 8px 12px; background: var(--surface-soft); border-radius: 0 10px 10px 0; font-size: .85rem; }
+    .context-item p { margin: 0; }
+    .context-item small { display: block; margin-top: 4px; color: var(--muted); font-size: .72rem; }
+    .overview-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 18px; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 340px; }
+    th { color: var(--muted); font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; font-weight: 800; }
+    td, th { padding: 12px 10px; border-bottom: 1px solid var(--line); }
+    td { font-size: .87rem; }
+    tr:last-child td { border-bottom: 0; }
+    .table-term { color: var(--green); font-weight: 850; }
+    .empty-state { background: var(--surface-soft); border: 1px dashed var(--line); border-radius: 15px; padding: 24px; text-align: center; color: var(--muted); }
+    .empty-state strong { display: block; color: var(--ink); margin-bottom: 6px; }
+    .footer { display: flex; justify-content: space-between; align-items: center; gap: 18px; color: var(--muted); font-size: .75rem; margin-top: 35px; padding-top: 20px; border-top: 1px solid var(--line); }
+    .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 16px); opacity: 0; pointer-events: none; background: var(--ink); color: var(--page); border-radius: 12px; padding: 12px 16px; font-size: .88rem; font-weight: 700; box-shadow: var(--shadow); transition: opacity .2s ease, transform .2s ease; z-index: 20; max-width: calc(100% - 32px); }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    #fileInput { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 900px) {
+      .hero { grid-template-columns: 1fr; }
+      .hero-note { max-width: none; }
+      .study-layout, .overview-grid { grid-template-columns: 1fr; }
+      .side-stack { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .dictionary-tools { grid-template-columns: 1fr 1fr; }
+      .dictionary-tools .text-input { grid-column: 1 / -1; max-width: none; }
+    }
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 24px, 1180px); padding-top: 15px; }
+      .topbar { align-items: flex-start; margin-bottom: 26px; }
+      .brand { font-size: 1rem; }
+      .brand-mark { width: 34px; height: 34px; }
+      .top-actions { gap: 7px; }
+      .top-actions .button { padding: 9px 10px; font-size: .78rem; }
+      .hero-copy { font-size: .92rem; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 22px 0; }
+      .stat { min-height: 98px; padding: 14px; }
+      .stat-number { font-size: 1.6rem; }
+      .notice { align-items: flex-start; }
+      .notice .button { flex: 0 0 auto; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .study-card { min-height: 450px; }
+      .card-top { padding: 14px 16px; }
+      .progress-track { margin: 0 16px; }
+      .card-actions { padding: 15px; }
+      .side-stack { grid-template-columns: 1fr; }
+      .quiz-options { grid-template-columns: 1fr; }
+      .dictionary-tools { grid-template-columns: 1fr; }
+      .dictionary-tools .text-input { grid-column: auto; }
+      .word-row-head { grid-template-columns: 1fr auto; gap: 10px; }
+      .meaning-edit { grid-column: 1 / -1; grid-row: 2; }
+      .word-frequency { grid-column: 2; grid-row: 1; }
+      .footer { align-items: flex-start; flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">S.</div><div>sanasto<small>finský osobní slovník</small></div></div>
+      <div class="top-actions">
+        <button class="button" id="exportProgressBtn" type="button">Exportovat pokrok</button>
+        <button class="button primary" id="importBtn" type="button">＋ Načíst slovník JSON</button>
+        <input id="fileInput" type="file" accept=".json,application/json" aria-label="Vybrat soubor vocabulary_db.json">
+      </div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Finnish, one word at a time</p>
+        <h1>Slova si zapamatuješ.<br>Kontext ti je ukotví.</h1>
+        <p class="hero-copy">Procvičuj finská lemmata ze svých přepisů Whisper. Sleduj četnost, vracej se k větám, doplňuj české významy a postupně si buduj vlastní slovník.</p>
+      </div>
+      <aside class="hero-note">
+        <strong id="heroNoteTitle">Tvoje slovní zásoba, na jednom místě</strong>
+        <p id="heroNoteText">Načti soubor vocabulary_db.json vytvořený skriptem Python. Významy a studijní pokrok zůstávají uložené v tomto prohlížeči.</p>
+      </aside>
+    </section>
+
+    <section class="stats" aria-label="Souhrn slovní zásoby">
+      <div class="stat"><div class="stat-label">Slovní hesla</div><div class="stat-number" id="statTerms">5</div><div class="stat-detail">unikátní lemmata</div></div>
+      <div class="stat"><div class="stat-label">Výskyty slov</div><div class="stat-number" id="statOccurrences">211</div><div class="stat-detail">napříč načtenými dny</div></div>
+      <div class="stat"><div class="stat-label">Kontexty</div><div class="stat-number" id="statContexts">91</div><div class="stat-detail">záznamy použití slov</div></div>
+      <div class="stat"><div class="stat-label">Známá slova</div><div class="stat-number" id="statKnown">0</div><div class="stat-detail" id="statKnownDetail">označená jako „umím“</div></div>
+    </section>
+
+    <nav class="nav" aria-label="Sekce aplikace">
+      <button type="button" class="active" data-tab="cards">Kartičky</button>
+      <button type="button" data-tab="quiz">Kontextový kvíz</button>
+      <button type="button" data-tab="dictionary">Slovník</button>
+      <button type="button" data-tab="overview">Přehled</button>
+    </nav>
+
+    <div class="notice" id="datasetNotice">
+      <div class="notice-copy"><span class="notice-icon">i</span><span><strong>Ukázkový režim.</strong> Pět nejčastějších lemmat vychází z tvého výpisu; věty jsou pouze ilustrační. Načti JSON pro plnou sadu.</span></div>
+      <button type="button" class="button soft" id="noticeImportBtn">Načíst data</button>
+    </div>
+
+    <main>
+      <section class="panel active" id="panel-cards">
+        <div class="section-heading">
+          <div><h2>Studijní kartičky</h2><p class="section-subtitle">Nejdřív si vybav význam. Pak odhal odpověď a ohodnoť, jak dobře slovo znáš.</p></div>
+          <div class="toolbar">
+            <label class="sr-only" for="cardFilter">Výběr kartiček</label>
+            <select class="select-input" id="cardFilter" style="width:auto;min-width:180px">
+              <option value="all">Všechna slova</option>
+              <option value="learning">Ještě procvičit</option>
+              <option value="new">Dosud nehodnocená</option>
+              <option value="known">Už umím</option>
+            </select>
+            <button type="button" class="button" id="shuffleBtn">Zamíchat</button>
+          </div>
+        </div>
+        <div class="study-layout">
+          <article class="card study-card" aria-live="polite">
+            <div class="card-top"><div class="progress-meta"><span class="small-label">Aktuální karta</span><span id="cardCounter">1 / 5</span></div><span id="cardStatus" class="type-chip">Nové slovo</span></div>
+            <div class="progress-track"><div class="progress-fill" id="cardProgress"></div></div>
+            <div class="card-content" id="cardContent"></div>
+            <div class="card-actions" id="cardActions"></div>
+          </article>
+          <aside class="side-stack">
+            <section class="card side-card"><h3>Tvůj postup</h3><div class="mini-stat"><span>Slova v sadě</span><strong id="sideTotal">5</strong></div><div class="mini-stat"><span>Ještě procvičit</span><strong id="sideLearning">0</strong></div><div class="mini-stat"><span>Umíš</span><strong id="sideKnown">0</strong></div><div class="mini-stat"><span>Čeká na hodnocení</span><strong id="sideNew">5</strong></div></section>
+            <section class="card side-card"><h3>Nejčastější lemmata</h3><ol class="queue-list" id="queueList"></ol></section>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel" id="panel-quiz">
+        <div class="section-heading"><div><h2>Slovo v kontextu</h2><p class="section-subtitle">Doplň základní tvar výrazu vynechaného ve finské větě.</p></div><span class="type-chip" id="quizAvailable">Kontextový trénink</span></div>
+        <article class="card quiz-card" id="quizCard">
+          <div class="small-label" id="quizKicker">Otázka 1</div>
+          <div class="quiz-context" id="quizSentence"></div>
+          <p class="section-subtitle" id="quizPrompt">Které lemma patří na vynechané místo?</p>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback" id="quizFeedback" hidden></div>
+          <div class="toolbar" style="justify-content:space-between;margin-top:20px"><span class="section-subtitle" id="quizScore">Zatím žádné odpovědi.</span><button class="button primary" id="nextQuizBtn" type="button" hidden>Další otázka →</button></div>
+        </article>
+      </section>
+
+      <section class="panel" id="panel-dictionary">
+        <div class="section-heading"><div><h2>Osobní slovník</h2><p class="section-subtitle">Vyhledej slovo, doplň si český význam a rozbal všechny zaznamenané kontexty.</p></div></div>
+        <div class="dictionary-tools">
+          <input class="text-input" type="search" id="dictionarySearch" placeholder="Hledat lemma, tvar nebo český význam…" aria-label="Hledat ve slovníku">
+          <select class="select-input" id="typeFilter" aria-label="Filtrovat podle slovního druhu"><option value="all">Všechny slovní druhy</option></select>
+          <select class="select-input" id="sortFilter" aria-label="Řazení slov"><option value="frequency">Nejčastější první</option><option value="alpha">Abecedně</option><option value="contexts">Nejvíce kontextů</option><option value="learning">Nejprve procvičovat</option></select>
+        </div>
+        <div class="dictionary-summary" id="dictionarySummary"></div>
+        <div class="word-list" id="wordList"></div>
+      </section>
+
+      <section class="panel" id="panel-overview">
+        <div class="section-heading"><div><h2>Přehled učení</h2><p class="section-subtitle">Rychlý pohled na četnost slov, hodnocení a slovní druhy v načtené sadě.</p></div><button class="button" id="exportDataBtn" type="button">Exportovat pokrok</button></div>
+        <div class="overview-grid">
+          <section class="card side-card"><h3>Nejčastější slova</h3><div class="table-wrap"><table><thead><tr><th>Lemma</th><th>Druh</th><th>Výskyty</th></tr></thead><tbody id="topTable"></tbody></table></div></section>
+          <section class="card side-card"><h3>Stav slovní zásoby</h3><div id="statusOverview"></div><div style="margin-top:20px"><h3>Data a soukromí</h3><p class="section-subtitle">Slovník se zpracovává přímo v prohlížeči. Významy a hodnocení se ukládají do místního úložiště tohoto prohlížeče; na GitHub se samy neposílají.</p></div></section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer"><span>sanasto · osobní finská slovní zásoba</span><span>Statická aplikace · vhodná pro GitHub Pages</span></footer>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+(() => {
+  "use strict";
+  const KEYS = {
+    dataset: "sanasto_dataset_v1",
+    meanings: "sanasto_meanings_v1",
+    ratings: "sanasto_ratings_v1",
+    quiz: "sanasto_quiz_v1"
+  };
+
+  // Ilustrační náhled: četnosti pěti nejčastějších lemmat z uživatelova výpisu.
+  // Věty v této ukázce nejsou převzaté z jeho přepisů. Skutečná data načti přes JSON.
+  const DEMO_TERMS = [
+    { lemma: "olla", type: "verb", count: 79, word_forms: { "olla": 14, "on": 31, "oli": 18, "ovat": 16 }, contexts: [
+      { word: "olla", sentence: "Voin olla täällä.", position: 2, date: "ukázka" },
+      { word: "on", sentence: "Se on hyvä kysymys.", position: 2, date: "ukázka" },
+      { word: "oli", sentence: "Eilen oli kaunis päivä.", position: 2, date: "ukázka" }
+    ], context_count: 36 },
+    { lemma: "se", type: "pronoun", count: 62, word_forms: { "se": 40, "sen": 14, "sitä": 8 }, contexts: [
+      { word: "se", sentence: "Se on hyvä kysymys.", position: 1, date: "ukázka" },
+      { word: "sen", sentence: "En muista sen nimeä.", position: 3, date: "ukázka" }
+    ], context_count: 21 },
+    { lemma: "ja", type: "other", count: 24, word_forms: { "ja": 24 }, contexts: [
+      { word: "ja", sentence: "Ostin leipää ja maitoa.", position: 4, date: "ukázka" }
+    ], context_count: 14 },
+    { lemma: "paljo", type: "adverb", count: 23, word_forms: { "paljon": 23 }, contexts: [
+      { word: "paljon", sentence: "Minulla on paljon aikaa.", position: 3, date: "ukázka" }
+    ], context_count: 9 },
+    { lemma: "vuosi", type: "noun", count: 23, word_forms: { "vuosi": 6, "vuonna": 11, "vuoden": 6 }, contexts: [
+      { word: "vuonna", sentence: "Viime vuonna matkustin Suomeen.", position: 2, date: "ukázka" }
+    ], context_count: 11 }
+  ];
+
+  const TYPE_LABELS = {
+    noun: "Podstatné jméno", verb: "Sloveso", adjective: "Přídavné jméno",
+    pronoun: "Zájmeno", adverb: "Příslovce", adposition: "Předložka / postpozice",
+    conjunction: "Spojka", interjection: "Citoslovce", numeral: "Číslovka",
+    unknown: "Neurčeno", other: "Jiné", nimisana: "Podstatné jméno",
+    teonsana: "Sloveso", laatusana: "Přídavné jméno", asemasana: "Zájmeno",
+    seikkasana: "Příslovce", suhdesana: "Předložka / postpozice", lukusana: "Číslovka",
+    huudahdussana: "Citoslovce"
+  };
+  const $ = (id) => document.getElementById(id);
+  let terms = DEMO_TERMS.map(cloneTerm);
+  let demoMode = true;
+  let activeTab = "cards";
+  let cardIndex = 0;
+  let deckOrder = [];
+  let cardRevealed = false;
+  let quizQuestion = null;
+  let quizAnswered = false;
+  let toastTimer = null;
+  let meanings = readStore(KEYS.meanings, {});
+  let ratings = readStore(KEYS.ratings, {});
+  let quizStats = readStore(KEYS.quiz, { correct: 0, total: 0 });
+  let currentRawData = null;
+
+  function readStore(key, fallback) {
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+    catch (_) { return fallback; }
+  }
+  function writeStore(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); return true; }
+    catch (_) { toast("Prohlížeč nemohl uložit změny. Exportuj si pokrok jako zálohu."); return false; }
+  }
+  function cloneTerm(term) { return { ...term, word_forms: { ...(term.word_forms || {}) }, contexts: (term.contexts || []).map(c => typeof c === "string" ? { word: term.word || term.lemma, sentence: c } : { ...c }) }; }
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+  }
+  function number(value) { return new Intl.NumberFormat("cs-CZ").format(Number(value) || 0); }
+  function typeLabel(type) { return TYPE_LABELS[type] || (type ? String(type) : "Neurčeno"); }
+  function randomItem(items) { return items[Math.floor(Math.random() * items.length)]; }
+  function shuffle(items) { const copy = [...items]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
+  function toast(message) {
+    const element = $("toast"); element.textContent = message; element.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => element.classList.remove("show"), 2800);
+  }
+  function safeKey(value) { return String(value || "").trim().toLocaleLowerCase("fi-FI"); }
+
+  function normalizeDatabase(data) {
+    const byLemma = new Map();
+    let totalSentences = 0;
+    let totalTokens = 0;
+    let sourceFiles = 0;
+    const days = [];
+    const rootLooksLikeDay = data && typeof data === "object" && Array.isArray(data.vocabulary);
+    const dayRows = rootLooksLikeDay ? [[data.date || "", data]] : Object.entries(data || {}).filter(([, day]) => day && typeof day === "object" && Array.isArray(day.vocabulary));
+    for (const [date, day] of dayRows) {
+      days.push(date);
+      totalSentences += Number(day.sentences_count) || (Array.isArray(day.sentences) ? day.sentences.length : 0);
+      totalTokens += Number(day.total_word_tokens) || 0;
+      sourceFiles += Array.isArray(day.source_files) ? day.source_files.length : 0;
+      for (const row of day.vocabulary) {
+        if (!row || typeof row !== "object") continue;
+        const lemma = String(row.lemma || row.word || "").trim();
+        if (!lemma) continue;
+        const key = safeKey(lemma);
+        const forms = row.word_forms && typeof row.word_forms === "object" && !Array.isArray(row.word_forms) ? row.word_forms : {};
+        let contexts = Array.isArray(row.contexts) ? row.contexts.map(c => typeof c === "string" ? { word: row.word || lemma, sentence: c } : { ...c }) : [];
+        if (!contexts.length && row.context_sentence) contexts = [{ word: row.word || lemma, sentence: row.context_sentence }];
+        contexts = contexts.map(c => ({ word: c.word || row.word || lemma, sentence: c.sentence || c.context_sentence || "", position: Number(c.position) || null, date: c.date || date || "" })).filter(c => c.sentence);
+        const formsTotal = Object.values(forms).reduce((sum, n) => sum + (Number(n) || 0), 0);
+        const rowCount = Number(row.count) || formsTotal || contexts.length || 1;
+        if (!byLemma.has(key)) byLemma.set(key, { lemma, type: row.type || "unknown", count: 0, word_forms: {}, contexts: [], context_count: 0, daily_counts: {}, _contextCounts: {} });
+        const target = byLemma.get(key);
+        target.count += rowCount;
+        target.daily_counts[date || "bez data"] = (target.daily_counts[date || "bez data"] || 0) + rowCount;
+        if (target.type === "unknown" && row.type) target.type = row.type;
+        if (!Object.keys(forms).length) {
+          const surface = String(row.word || lemma);
+          target.word_forms[surface] = (target.word_forms[surface] || 0) + rowCount;
+        } else {
+          for (const [form, cnt] of Object.entries(forms)) target.word_forms[form] = (target.word_forms[form] || 0) + (Number(cnt) || 0);
+        }
+        target.contexts.push(...contexts);
+        target._contextCounts[date || "bez data"] = (target._contextCounts[date || "bez data"] || 0) + (Number(row.context_count) || contexts.length);
+      }
+    }
+    // Allow simple JSON arrays, e.g. [{lemma, count, contexts}, ...].
+    if (!dayRows.length && Array.isArray(data)) {
+      for (const row of data) {
+        const lemma = String(row?.lemma || row?.word || "").trim(); if (!lemma) continue;
+        const key = safeKey(lemma); const contexts = Array.isArray(row.contexts) ? row.contexts.map(c => typeof c === "string" ? { word: row.word || lemma, sentence: c } : { ...c }).filter(c => c.sentence) : [];
+        const forms = row.word_forms || {};
+        byLemma.set(key, { lemma, type: row.type || "unknown", count: Number(row.count) || Object.values(forms).reduce((a, b) => a + (Number(b) || 0), 0) || contexts.length || 1, word_forms: forms, contexts, context_count: Number(row.context_count) || contexts.length, daily_counts: {}, _contextCounts: {} });
+      }
+    }
+    const result = [...byLemma.values()].map(term => {
+      term.word_forms = Object.fromEntries(Object.entries(term.word_forms).sort((a, b) => b[1] - a[1]));
+      term.context_count = term.contexts.length || Object.values(term._contextCounts).reduce((sum, n) => sum + n, 0);
+      delete term._contextCounts;
+      return term;
+    }).sort((a, b) => b.count - a.count || a.lemma.localeCompare(b.lemma, "fi"));
+    if (!result.length) throw new Error("Soubor neobsahuje rozpoznatelná hesla. Očekávám vocabulary_db.json s denními položkami a polem vocabulary.");
+    return { terms: result, totals: { sentences: totalSentences, tokens: totalTokens, files: sourceFiles, days: days.length } };
+  }
+
+  function filteredDeck() {
+    const filter = $("cardFilter").value;
+    return deckOrder.map(key => terms.find(t => safeKey(t.lemma) === key)).filter(Boolean).filter(term => {
+      const rating = ratings[safeKey(term.lemma)];
+      return filter === "all" || (filter === "learning" && rating === "learning") || (filter === "new" && !rating) || (filter === "known" && rating === "known");
+    });
+  }
+  function currentTerm() {
+    const deck = filteredDeck();
+    if (!deck.length) return null;
+    if (cardIndex >= deck.length) cardIndex = 0;
+    return deck[cardIndex];
+  }
+  function progressCounts() {
+    let known = 0, learning = 0, fresh = 0, contexts = 0, occurrences = 0;
+    for (const term of terms) {
+      const r = ratings[safeKey(term.lemma)];
+      if (r === "known") known++;
+      else if (r === "learning") learning++;
+      else fresh++;
+      contexts += term.context_count || term.contexts.length || 0;
+      occurrences += term.count || 0;
+    }
+    return { known, learning, fresh, contexts, occurrences };
+  }
+  function renderStats() {
+    const counts = progressCounts();
+    $("statTerms").textContent = number(terms.length);
+    $("statOccurrences").textContent = number(counts.occurrences);
+    $("statContexts").textContent = number(counts.contexts);
+    $("statKnown").textContent = number(counts.known);
+    $("statKnownDetail").textContent = `${terms.length ? Math.round(counts.known / terms.length * 100) : 0} % slovní zásoby`;
+    $("sideTotal").textContent = number(terms.length);
+    $("sideLearning").textContent = number(counts.learning);
+    $("sideKnown").textContent = number(counts.known);
+    $("sideNew").textContent = number(counts.fresh);
+  }
+  function renderQueue() {
+    const current = currentTerm();
+    const top = terms.slice(0, 5);
+    $("queueList").innerHTML = top.map((term, i) => `<li><button type="button" data-jump-lemma="${escapeHtml(term.lemma)}" class="${current && safeKey(current.lemma) === safeKey(term.lemma) ? "selected" : ""}"><span class="queue-num">${String(i + 1).padStart(2, "0")}</span><span class="queue-term">${escapeHtml(term.lemma)}</span><span class="queue-count">${number(term.count)}</span></button></li>`).join("") || `<li class="empty-state">Zatím žádná slova.</li>`;
+  }
+  function renderCards() {
+    const deck = filteredDeck();
+    const term = currentTerm();
+    const actions = $("cardActions");
+    $("cardCounter").textContent = deck.length ? `${cardIndex + 1} / ${deck.length}` : "0 / 0";
+    $("cardProgress").style.width = deck.length ? `${((cardIndex + 1) / deck.length) * 100}%` : "0%";
+    if (!term) {
+      $("cardStatus").textContent = "Hotovo";
+      $("cardContent").innerHTML = `<div class="empty-state"><strong>V tomto filtru nic nezbývá.</strong>Změň filtr nebo přidej další slova do slovníku.</div>`;
+      actions.innerHTML = `<button class="button" type="button" id="resetCardFilterBtn">Zobrazit všechna slova</button>`;
+      $("resetCardFilterBtn").addEventListener("click", () => { $("cardFilter").value = "all"; cardIndex = 0; renderAll(); });
+      renderQueue(); return;
+    }
+    const rating = ratings[safeKey(term.lemma)];
+    $("cardStatus").textContent = rating === "known" ? "Už umím" : rating === "learning" ? "Procvičit znovu" : "Nové slovo";
+    const context = term.contexts.length ? term.contexts[cardIndex % term.contexts.length] : null;
+    const contextHtml = context ? `<div class="context-quote"><span class="quote-label">${demoMode && context.date === "ukázka" ? "Ilustrační věta" : `Kontext${context.date ? " · " + escapeHtml(context.date) : ""}`}</span><p>${escapeHtml(context.sentence)}</p>${context.word ? `<div class="context-date">Tvar ve větě: <strong>${escapeHtml(context.word)}</strong></div>` : ""}</div>` : `<div class="context-quote"><span class="quote-label">Kontext</span><p>Pro toto slovo není v načteném JSON kontextová věta.</p></div>`;
+    let content = `<span class="type-chip">${escapeHtml(typeLabel(term.type))}</span><div class="lemma-large">${escapeHtml(term.lemma)}</div><div class="pronunciation-hint">${number(term.count)} výskytů · ${number(term.context_count)} kontextů</div>${contextHtml}`;
+    if (cardRevealed) {
+      content += `<div class="answer-area"><label class="form-label" for="cardMeaningInput">Český význam / vlastní poznámka</label><div style="display:flex;gap:8px"><input id="cardMeaningInput" class="text-input" maxlength="500" placeholder="Např. být, existovat…" value="${escapeHtml(meanings[safeKey(term.lemma)] || "")}"><button class="button soft" id="saveCardMeaningBtn" type="button">Uložit</button></div><div class="word-row-foot" style="justify-content:center">${Object.entries(term.word_forms || {}).slice(0, 6).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("")}</div></div>`;
+    }
+    $("cardContent").innerHTML = content;
+    if (!cardRevealed) {
+      actions.innerHTML = `<button class="button primary" id="revealCardBtn" type="button">Ukázat odpověď</button><button class="button" id="skipCardBtn" type="button">Přeskočit →</button>`;
+      $("revealCardBtn").addEventListener("click", () => { cardRevealed = true; renderCards(); });
+    } else {
+      actions.innerHTML = `<button class="button danger-soft" id="learningBtn" type="button">↻ Ještě procvičit</button><button class="button primary" id="knownBtn" type="button">✓ Umím</button><button class="button" id="nextCardBtn" type="button">Další →</button>`;
+      $("saveCardMeaningBtn").addEventListener("click", () => { meanings[safeKey(term.lemma)] = $("cardMeaningInput").value.trim(); writeStore(KEYS.meanings, meanings); toast("Význam uložen."); renderStats(); });
+      $("learningBtn").addEventListener("click", () => rateTerm(term, "learning"));
+      $("knownBtn").addEventListener("click", () => rateTerm(term, "known"));
+    }
+    const skip = $("skipCardBtn"); if (skip) skip.addEventListener("click", nextCard);
+    const next = $("nextCardBtn"); if (next) next.addEventListener("click", nextCard);
+    renderQueue();
+  }
+  function rateTerm(term, rating) {
+    ratings[safeKey(term.lemma)] = rating;
+    writeStore(KEYS.ratings, ratings);
+    const deck = filteredDeck();
+    if (rating !== $("cardFilter").value && $("cardFilter").value !== "all") cardIndex = Math.min(cardIndex, Math.max(0, deck.length - 1));
+    else cardIndex = deck.length ? (cardIndex + 1) % deck.length : 0;
+    cardRevealed = false;
+    renderAll();
+    toast(rating === "known" ? "Označeno jako známé." : "Zařazeno k dalšímu procvičení.");
+  }
+  function nextCard() { const deck = filteredDeck(); if (!deck.length) return; cardIndex = (cardIndex + 1) % deck.length; cardRevealed = false; renderCards(); }
+
+  function maskedSentence(context) {
+    const sentence = String(context.sentence || "");
+    const tokens = sentence.split(/(\s+)/);
+    let wordIndex = Number(context.position) > 0 ? Number(context.position) - 1 : -1;
+    // Keep whitespace fragments separate; position refers to whitespace-separated tokens.
+    const parts = sentence.split(/(\s+)/);
+    if (wordIndex >= 0) {
+      let seen = -1;
+      for (let i = 0; i < parts.length; i++) {
+        if (/\s+/.test(parts[i]) || !parts[i]) continue;
+        seen++;
+        if (seen === wordIndex) { parts[i] = "__MASK__"; break; }
+      }
+    } else {
+      const surface = String(context.word || "").toLocaleLowerCase("fi-FI");
+      let replaced = false;
+      for (let i = 0; i < parts.length; i++) {
+        if (!replaced && parts[i] && !/^\s+$/.test(parts[i]) && parts[i].replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}-]+$/gu, "").toLocaleLowerCase("fi-FI") === surface) {
+          parts[i] = "__MASK__"; replaced = true;
+        }
+      }
+    }
+    if (!parts.includes("__MASK__")) return escapeHtml(sentence);
+    return parts.map(part => part === "__MASK__" ? `<span class="blank">______</span>` : escapeHtml(part)).join("");
+  }
+  function createQuizQuestion() {
+    const candidates = terms.flatMap(term => (term.contexts || []).filter(c => c.sentence).map(context => ({ term, context })));
+    if (!candidates.length) { quizQuestion = null; renderQuiz(); return; }
+    const selected = randomItem(candidates);
+    const alternatives = shuffle(terms.filter(t => safeKey(t.lemma) !== safeKey(selected.term.lemma))).slice(0, 3).map(t => t.lemma);
+    const options = shuffle([...new Set([selected.term.lemma, ...alternatives])]);
+    quizQuestion = { ...selected, options };
+    quizAnswered = false;
+    renderQuiz();
+  }
+  function renderQuiz() {
+    if (!quizQuestion) {
+      $("quizAvailable").textContent = "Čeká na data";
+      $("quizSentence").innerHTML = "";
+      $("quizOptions").innerHTML = `<div class="empty-state" style="grid-column:1/-1"><strong>Nejsou dostupné kontextové věty.</strong>Načti aktuální <code>vocabulary_db.json</code>, ve kterém mají hesla pole <code>contexts</code> s větami a pozicemi slov.</div>`;
+      $("quizFeedback").hidden = true; $("nextQuizBtn").hidden = true;
+      $("quizScore").textContent = `Správně ${quizStats.correct} z ${quizStats.total} odpovědí.`;
+      return;
+    }
+    const { term, context, options } = quizQuestion;
+    $("quizAvailable").textContent = `${number(terms.filter(t => t.contexts.length).length)} slov s kontextem`;
+    $("quizKicker").textContent = "Najdi základní tvar";
+    $("quizSentence").innerHTML = maskedSentence(context);
+    $("quizOptions").innerHTML = options.map(option => `<button class="option" data-answer="${escapeHtml(option)}" type="button" ${quizAnswered ? "disabled" : ""}><span>${escapeHtml(option)}</span><span>↗</span></button>`).join("");
+    $("quizOptions").querySelectorAll("button").forEach(button => button.addEventListener("click", () => answerQuiz(button.dataset.answer)));
+    const feedback = $("quizFeedback");
+    if (quizAnswered) {
+      const wasCorrect = quizQuestion.selectedCorrect;
+      feedback.hidden = false;
+      feedback.innerHTML = wasCorrect ? `<strong>Správně.</strong> Základní tvar je ${escapeHtml(term.lemma)}.${meanings[safeKey(term.lemma)] ? ` Význam: ${escapeHtml(meanings[safeKey(term.lemma)])}.` : ""}` : `<strong>Správné řešení: ${escapeHtml(term.lemma)}.</strong> ${context.word ? `Ve větě je tvar „${escapeHtml(context.word)}“.` : ""}${meanings[safeKey(term.lemma)] ? ` Význam: ${escapeHtml(meanings[safeKey(term.lemma)])}.` : " Přidej český význam ve Slovníku."}`;
+      $("quizOptions").querySelectorAll("button").forEach(button => {
+        if (safeKey(button.dataset.answer) === safeKey(term.lemma)) button.classList.add("correct");
+        else if (safeKey(button.dataset.answer) === safeKey(quizQuestion.lastAnswer)) button.classList.add("incorrect");
+      });
+      $("nextQuizBtn").hidden = false;
+    } else {
+      feedback.hidden = true; $("nextQuizBtn").hidden = true;
+    }
+    $("quizScore").textContent = `Správně ${quizStats.correct} z ${quizStats.total} odpovědí.`;
+  }
+  function answerQuiz(answer) {
+    if (!quizQuestion || quizAnswered) return;
+    const correct = safeKey(answer) === safeKey(quizQuestion.term.lemma);
+    quizQuestion.selectedCorrect = correct;
+    quizQuestion.lastAnswer = answer;
+    quizAnswered = true;
+    quizStats.total += 1; if (correct) quizStats.correct += 1;
+    writeStore(KEYS.quiz, quizStats);
+    renderQuiz();
+  }
+
+  function renderTypeOptions() {
+    const select = $("typeFilter"); const current = select.value || "all";
+    const types = [...new Set(terms.map(t => t.type || "unknown"))].sort((a, b) => typeLabel(a).localeCompare(typeLabel(b), "cs"));
+    select.innerHTML = `<option value="all">Všechny slovní druhy</option>` + types.map(type => `<option value="${escapeHtml(type)}">${escapeHtml(typeLabel(type))}</option>`).join("");
+    select.value = types.includes(current) ? current : "all";
+  }
+  function dictionaryFiltered() {
+    const query = safeKey($("dictionarySearch").value);
+    const type = $("typeFilter").value;
+    const sort = $("sortFilter").value;
+    let list = terms.filter(term => {
+      if (type !== "all" && term.type !== type) return false;
+      const meaning = meanings[safeKey(term.lemma)] || "";
+      const searchSpace = [term.lemma, ...Object.keys(term.word_forms || {}), meaning].join(" ").toLocaleLowerCase("fi-FI");
+      return !query || searchSpace.includes(query);
+    });
+    if (sort === "alpha") list.sort((a, b) => a.lemma.localeCompare(b.lemma, "fi"));
+    else if (sort === "contexts") list.sort((a, b) => b.context_count - a.context_count || b.count - a.count);
+    else if (sort === "learning") list.sort((a, b) => (ratings[safeKey(a.lemma)] === "learning" ? 0 : ratings[safeKey(a.lemma)] === "known" ? 2 : 1) - (ratings[safeKey(b.lemma)] === "learning" ? 0 : ratings[safeKey(b.lemma)] === "known" ? 2 : 1) || b.count - a.count);
+    else list.sort((a, b) => b.count - a.count || a.lemma.localeCompare(b.lemma, "fi"));
+    return list;
+  }
+  function renderWordContexts(term) {
+    if (!term.contexts.length) return `<div class="empty-state"><strong>Kontexty nejsou k dispozici.</strong>V aktuální databázi nejsou k tomuto lemmatu uložené věty.</div>`;
+    return `<div class="context-list">${term.contexts.map((context, index) => `<div class="context-item"><p>${escapeHtml(context.sentence || "")}</p><small>Výskyt ${number(index + 1)}${context.word ? ` · tvar: ${escapeHtml(context.word)}` : ""}${context.position ? ` · pozice: ${number(context.position)}` : ""}${context.date ? ` · ${escapeHtml(context.date)}` : ""}</small></div>`).join("")}</div>`;
+  }
+  function renderDictionary() {
+    const list = dictionaryFiltered();
+    $("dictionarySummary").textContent = `Zobrazeno ${number(list.length)} z ${number(terms.length)} lemmat. České významy jsou tvoje vlastní poznámky.`;
+    if (!list.length) { $("wordList").innerHTML = `<div class="empty-state"><strong>Nic jsme nenašli.</strong>Zkus jiný hledaný výraz nebo filtr.</div>`; return; }
+    $("wordList").innerHTML = list.map(term => {
+      const lemmaKey = safeKey(term.lemma);
+      const status = ratings[lemmaKey] === "known" ? "Umím" : ratings[lemmaKey] === "learning" ? "Procvičit" : "Nové";
+      const forms = Object.entries(term.word_forms || {}).slice(0, 5).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("");
+      return `<article class="word-row" data-term-row="${escapeHtml(term.lemma)}"><div class="word-row-head"><div><div class="word-title">${escapeHtml(term.lemma)}</div><div class="word-meta">${escapeHtml(typeLabel(term.type))} · ${escapeHtml(status)}</div></div><div class="meaning-edit"><input class="text-input meaning-input" data-meaning-input="${escapeHtml(term.lemma)}" value="${escapeHtml(meanings[lemmaKey] || "")}" placeholder="Český význam…" maxlength="500" aria-label="Český význam slova ${escapeHtml(term.lemma)}"><button type="button" class="button soft save-meaning" data-save-meaning="${escapeHtml(term.lemma)}">Uložit</button></div><div class="word-frequency"><strong>${number(term.count)}×</strong><span>${number(term.context_count)} kontextů</span></div></div><div class="word-row-foot">${forms}<button type="button" class="subtle-button toggle-contexts" data-context-lemma="${escapeHtml(term.lemma)}">Zobrazit kontexty (${number(term.contexts.length)}) ↓</button></div><div class="contexts-slot" data-context-slot="${escapeHtml(term.lemma)}" hidden></div></article>`;
+    }).join("");
+    $("wordList").querySelectorAll(".save-meaning").forEach(button => button.addEventListener("click", () => {
+      const lemma = button.dataset.saveMeaning; const input = $("wordList").querySelector(`[data-meaning-input="${CSS.escape(lemma)}"]`);
+      meanings[safeKey(lemma)] = input ? input.value.trim() : ""; writeStore(KEYS.meanings, meanings); toast(`Význam pro „${lemma}“ uložen.`); renderStats(); renderOverview();
+    }));
+    $("wordList").querySelectorAll(".toggle-contexts").forEach(button => button.addEventListener("click", () => {
+      const lemma = button.dataset.contextLemma; const term = terms.find(t => safeKey(t.lemma) === safeKey(lemma)); const slot = $("wordList").querySelector(`[data-context-slot="${CSS.escape(lemma)}"]`);
+      if (!slot || !term) return;
+      const open = !slot.hidden; slot.hidden = open;
+      if (!open) slot.innerHTML = renderWordContexts(term);
+      button.textContent = open ? `Zobrazit kontexty (${number(term.contexts.length)}) ↓` : "Skrýt kontexty ↑";
+    }));
+  }
+  function renderOverview() {
+    const sorted = [...terms].sort((a, b) => b.count - a.count).slice(0, 10);
+    $("topTable").innerHTML = sorted.map(term => `<tr><td class="table-term">${escapeHtml(term.lemma)}</td><td>${escapeHtml(typeLabel(term.type))}</td><td>${number(term.count)}</td></tr>`).join("") || `<tr><td colspan="3">Bez dat</td></tr>`;
+    const counts = progressCounts();
+    const percent = (value) => terms.length ? Math.round(value / terms.length * 100) : 0;
+    $("statusOverview").innerHTML = [
+      ["Umím", counts.known, "var(--green)"],
+      ["Ještě procvičit", counts.learning, "var(--orange)"],
+      ["Nová slova", counts.fresh, "var(--muted)"]
+    ].map(([label, value, color]) => `<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;gap:12px;font-size:.85rem;margin-bottom:6px"><span>${label}</span><strong>${number(value)} · ${percent(value)} %</strong></div><div style="height:7px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:${percent(value)}%;background:${color};border-radius:inherit"></div></div></div>`).join("") + `<p class="section-subtitle" style="margin-top:20px">Kvíz: ${number(quizStats.correct)} správných z ${number(quizStats.total)} odpovědí.</p>`;
+  }
+  function renderAll() {
+    renderStats(); renderCards(); renderTypeOptions(); renderDictionary(); renderOverview();
+    if (!quizQuestion) createQuizQuestion(); else renderQuiz();
+  }
+  function activateTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll(".nav button").forEach(button => button.classList.toggle("active", button.dataset.tab === tab));
+    document.querySelectorAll(".panel").forEach(panel => panel.classList.toggle("active", panel.id === `panel-${tab}`));
+    if (tab === "quiz" && !quizQuestion) createQuizQuestion();
+    if (tab === "dictionary") renderDictionary();
+  }
+  function exportProgress() {
+    const payload = { exported_at: new Date().toISOString(), meanings, ratings, quiz_stats: quizStats, note: "Tento soubor obsahuje studijní pokrok, nikoli slovní databázi." };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "sanasto_studijni_pokrok.json"; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    toast("Záloha pokroku byla připravena ke stažení.");
+  }
+  async function importDatabase(file) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      const normalized = normalizeDatabase(parsed);
+      terms = normalized.terms;
+      currentRawData = text;
+      demoMode = false;
+      try { localStorage.setItem(KEYS.dataset, text); } catch (_) { /* import still works for current session */ }
+      deckOrder = shuffle(terms.map(term => safeKey(term.lemma)));
+      cardIndex = 0; cardRevealed = false; quizQuestion = null;
+      $("datasetNotice").innerHTML = `<div class="notice-copy"><span class="notice-icon">✓</span><span><strong>Slovník načten.</strong> ${number(terms.length)} lemmat${normalized.totals.days ? ` · ${number(normalized.totals.days)} denních záznamů` : ""}. Významy a hodnocení zůstávají v tomto prohlížeči.</span></div><button type="button" class="button soft" id="replaceDataBtn">Vyměnit JSON</button>`;
+      $("replaceDataBtn").addEventListener("click", () => $("fileInput").click());
+      $("heroNoteTitle").textContent = "Vlastní slovník je připraven";
+      $("heroNoteText").textContent = "Vyber slovo v kartičkách, přidej český význam a procvič si jeho základní tvar ve větách.";
+      renderAll();
+      toast(`Načteno ${terms.length} lemmat z ${file.name}.`);
+    } catch (error) {
+      toast(error.message || "Soubor se nepodařilo načíst.");
+    } finally {
+      $("fileInput").value = "";
+    }
+  }
+  function initializeDataset() {
+    try {
+      const saved = localStorage.getItem(KEYS.dataset);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const normalized = normalizeDatabase(parsed);
+        terms = normalized.terms; currentRawData = saved; demoMode = false;
+        $("datasetNotice").innerHTML = `<div class="notice-copy"><span class="notice-icon">✓</span><span><strong>Obnoven tvůj slovník.</strong> ${number(terms.length)} lemmat načteno z místního úložiště.</span></div><button type="button" class="button soft" id="replaceDataBtn">Vyměnit JSON</button>`;
+        $("replaceDataBtn").addEventListener("click", () => $("fileInput").click());
+        $("heroNoteTitle").textContent = "Vlastní slovník je připraven";
+        $("heroNoteText").textContent = "Data se obnovila z tohoto prohlížeče. Přes import můžeš načíst novou verzi své denní databáze.";
+      }
+    } catch (_) { /* fall back to the example set */ }
+    deckOrder = terms.map(term => safeKey(term.lemma));
+  }
+
+  document.querySelectorAll(".nav button").forEach(button => button.addEventListener("click", () => activateTab(button.dataset.tab)));
+  $("importBtn").addEventListener("click", () => $("fileInput").click());
+  $("noticeImportBtn").addEventListener("click", () => $("fileInput").click());
+  $("fileInput").addEventListener("change", event => importDatabase(event.target.files[0]));
+  $("exportProgressBtn").addEventListener("click", exportProgress);
+  $("exportDataBtn").addEventListener("click", exportProgress);
+  $("cardFilter").addEventListener("change", () => { cardIndex = 0; cardRevealed = false; renderCards(); renderStats(); });
+  $("shuffleBtn").addEventListener("click", () => { deckOrder = shuffle(terms.map(term => safeKey(term.lemma))); cardIndex = 0; cardRevealed = false; renderCards(); toast("Pořadí kartiček zamícháno."); });
+  $("dictionarySearch").addEventListener("input", renderDictionary);
+  $("typeFilter").addEventListener("change", renderDictionary);
+  $("sortFilter").addEventListener("change", renderDictionary);
+  $("nextQuizBtn").addEventListener("click", createQuizQuestion);
+  $("queueList").addEventListener("click", event => {
+    const button = event.target.closest("[data-jump-lemma]"); if (!button) return;
+    const index = filteredDeck().findIndex(t => safeKey(t.lemma) === safeKey(button.dataset.jumpLemma));
+    if (index >= 0) { cardIndex = index; cardRevealed = false; renderCards(); }
+    activateTab("cards");
+  });
+
+  initializeDataset();
+  renderAll();
+})();
+</script>
+</body>
+</html>
