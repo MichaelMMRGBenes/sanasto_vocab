@@ -5,9 +5,16 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 ## Funkce
 
 - Studijní kartičky s hodnocením „Umím“ / „Ještě procvičit“
+- Denní sada až 10 častých slov; nová a splatná slova mají přednost
+- Rozložené opakování známých slov s intervaly 1, 3, 7 a 14 dní
+- Orientační úroveň A1–B2 odhadnutá z četnosti v právě načteném slovníku; úroveň lze změnit u každého slova
+- Volba jazyka vlastních překladů (čeština nebo angličtina) z rozbalovací nabídky
+- Návrh překladu přes MyMemory; uživatel ho může upravit, přijmout nebo přepsat
+- Režim „Napiš překlad“ pro aktivní vybavování vedle běžných kartiček
 - Kvíz na doplňování lemmat do vět
+- Rozbalení širšího kontextu věty; otázky kvízu se zobrazí jen tehdy, když lze určit vynechaný tvar
 - Vyhledávání, filtrování a řazení slovníku
-- Ukládání českých významů a pokroku v místním úložišti prohlížeče
+- Potvrzení překladu klávesou Enter a ukládání pokroku v místním úložišti prohlížeče
 - Export studijního pokroku jako zálohy
 
 ## Spuštění na GitHub Pages
@@ -20,7 +27,7 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 
 ## Vlastní slovník a soukromí
 
-Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Skutečná slovní databáze není součástí tohoto balíčku. Pokud nechceš zveřejnit věty z osobních přepisů, nenahrávej databázi do veřejného repozitáře. Importovaná databáze, české významy a hodnocení se ukládají v místním úložišti daného prohlížeče a aplikace je sama neodesílá na GitHub.
+Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Osobní slovní databáze do veřejného repozitáře nepřidávej. Importovaná databáze, překlady, úrovně a hodnocení zůstávají v místním úložišti prohlížeče. Návrh překladu se dotáže služby MyMemory až po potvrzení; odešle jí pouze právě vybrané finské lemma, nikoli kontextovou větu nebo celý slovník. Návrh vždy zkontroluj.
 
 ## Lokální spuštění
 
