@@ -311,6 +311,7 @@
     dataset: "sanasto_dataset_v1",
     meanings: "sanasto_meanings_v1",
     levels: "sanasto_levels_v1",
+    levelEstimates: "sanasto_level_estimates_v1",
     language: "sanasto_language_v1",
     translationConsent: "sanasto_translation_consent_v1",
     cardMode: "sanasto_card_mode_v1",
@@ -365,6 +366,7 @@
   let toastTimer = null;
   let meanings = readStore(KEYS.meanings, {});
   let levelOverrides = readStore(KEYS.levels, {});
+  let levelEstimates = readStore(KEYS.levelEstimates, {});
   let targetLanguage = readStore(KEYS.language, "cs");
   let ratings = readStore(KEYS.ratings, {});
   let reviewSchedule = readStore(KEYS.schedule, {});
@@ -399,12 +401,58 @@
     const key = safeKey(term.lemma);
     if (Object.prototype.hasOwnProperty.call(levelOverrides, key)) return levelOverrides[key];
     const known = String(term.level || term.cefr || "").toUpperCase();
-    return ["A1", "A2", "B1", "B2", "C1", "C2"].includes(known) ? known : "";
+    if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(known)) return known;
+    return levelEstimates[key]?.level || "";
   }
   function termLevelSource(term) {
     const key = safeKey(term.lemma);
     if (Object.prototype.hasOwnProperty.call(levelOverrides, key)) return levelOverrides[key] ? "ručně nastavená" : "ručně nezařazená";
-    return termLevel(term) ? "ze zdrojových dat" : "nezařazená";
+    if (String(term.level || term.cefr || "").trim()) return "ze zdrojových dat";
+    return levelEstimates[key] ? "orientační odhad" : "nezařazená";
+  }
+  const LEVEL_CUES = {
+    A1: "ja|ty you|on he|ona she|my we|ano yes|ne no|ahoj hello|dekuji thanks|prosim please|matka mother|otec father|sestra sister|bratr brother|rodina family|dite child|muz man|zena woman|pes dog|kocka cat|hlava head|ruka hand|voda water|jidlo food|chleb bread|dum house|pokoj room|den day|noc night|rano morning|dnes today|zitra tomorrow|rok year|auto car|cerveny red|modry blue|jeden one|dva two|byt be|mit have",
+    A2: "nakup shopping|cestovat travel|jizdenka ticket|autobus bus|nadrazi station|restaurace restaurant|rezervace booking|prace work|zamestnani job|skola school|ucit se study|zdravotni health|nemocny ill|bolest pain|pocasi weather|dovolena holiday|konicek hobby|pozvat invite|vybrat choose|objednat order|oprava repair|platit pay|ucet bill|plan plan",
+    B1: "zkušenost experience|zkusenost experience|nazoru opinion|myslet think|rozhodnout decide|vysvetlit explain|porovnat compare|vztah relationship|spolecnost society|zivotni prostredi environment|kultura culture|tradice tradition|vzdelani education|budoucnost future|uspech success|moznost opportunity|problem issue|reseni solution|duvod reason|zmena change",
+    B2: "odpovednost responsibility|politika policy|hospodarstvi economy|vyzkum research|dukaz evidence|jev phenomenon|perspektiva perspective|okolnost circumstance|dusledek consequence|pozadavek requirement|hodnotit assess|vyjednavat negotiate|legislativa legislation|udrzitelnost sustainability|infrastruktura infrastructure|investice investment|strategie strategy|pravdepodobnost probability"
+  };
+  function estimateLevelFromMeaning(term, meaning) {
+    const key = safeKey(term.lemma);
+    if (levelOverrides[key] || String(term.level || term.cefr || "").trim()) return null;
+    const normalized = String(meaning || "").toLocaleLowerCase("cs-CZ").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const words = new Set(normalized.match(/[\p{L}\p{N}]+/gu) || []);
+    const scores = Object.entries(LEVEL_CUES).map(([level, cues]) => ({
+      level,
+      score: cues.split("|").reduce((sum, cue) => {
+        const alternatives = cue.split(" ");
+        return sum + (alternatives.some(word => words.has(word)) ? 1 : 0);
+      }, 0)
+    })).sort((a, b) => b.score - a.score);
+    if (!scores[0]?.score || scores[0].score === scores[1]?.score) return null;
+    const descriptors = {
+      A1: "základní potřeby, lidé a konkrétní věci z každodenního života",
+      A2: "běžné situace, rutina a známá praktická témata",
+      B1: "zkušenosti, názory a obecná společenská témata",
+      B2: "abstraktnější, odbornější nebo formálnější význam"
+    };
+    return { level: scores[0].level, confidence: scores[0].score > 1 ? "střední" : "nízká", reason: descriptors[scores[0].level], from: safeKey(meaning) };
+  }
+  function saveMeaning(lemma, value) {
+    const term = terms.find(item => safeKey(item.lemma) === safeKey(lemma));
+    const meaning = String(value || "").trim();
+    meanings[meaningKey(lemma)] = meaning;
+    writeStore(KEYS.meanings, meanings);
+    if (term && !Object.prototype.hasOwnProperty.call(levelOverrides, safeKey(lemma)) && !String(term.level || term.cefr || "").trim()) {
+      const estimate = meaning ? estimateLevelFromMeaning(term, meaning) : null;
+      if (estimate) levelEstimates[safeKey(lemma)] = estimate;
+      else delete levelEstimates[safeKey(lemma)];
+      writeStore(KEYS.levelEstimates, levelEstimates);
+    }
+    return !Object.prototype.hasOwnProperty.call(levelOverrides, safeKey(lemma)) && term && !String(term.level || term.cefr || "").trim() ? levelEstimates[safeKey(lemma)] || null : null;
+  }
+  function termLevelNote(term) {
+    const estimate = levelEstimates[safeKey(term.lemma)];
+    return estimate ? `Orientační odhad s ${estimate.confidence} jistotou podle významu „${estimate.from}“: ${estimate.reason}.` : "";
   }
   function visibleTerm(term) { const level = $("levelMenu").dataset.value || "all"; return level === "all" || (level === "unassigned" ? !termLevel(term) : termLevel(term) === level); }
   function dailySeed(term) { const day = new Date().toLocaleDateString("en-CA"); const text = day + ":" + term.lemma; let hash = 2166136261; for (const ch of text) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619); return hash >>> 0; }
@@ -569,11 +617,11 @@
     $("cardStatus").textContent = rating === "known" ? "Už umím" : rating === "learning" ? "Procvičit znovu" : "Nové slovo";
     const context = term.contexts.length ? term.contexts[cardIndex % term.contexts.length] : null;
     const contextHtml = context ? `<div class="context-quote"><span class="quote-label">${demoMode && context.date === "ukázka" ? "Ilustrační věta" : `Kontext${context.date ? " · " + escapeHtml(context.date) : ""}`}</span><p>${escapeHtml(context.short_sentence || context.sentence)}</p>${context.full_context && context.full_context !== (context.short_sentence || context.sentence) ? `<button type="button" class="subtle-button" id="expandCardContextBtn">Zobrazit širší kontext ↓</button><p id="cardFullContext" hidden>${escapeHtml(context.full_context)}</p>` : ""}${context.word ? `<div class="context-date">Tvar ve větě: <strong>${escapeHtml(context.word)}</strong></div>` : ""}</div>` : `<div class="context-quote"><span class="quote-label">Kontext</span><p>Pro toto slovo není v načteném JSON kontextová věta.</p></div>`;
-    let content = `<span class="type-chip">${escapeHtml(typeLabel(term.type))}</span><div class="lemma-large">${escapeHtml(term.lemma)}</div><div class="pronunciation-hint">${number(term.count)} výskytů · ${number(term.context_count)} kontextů · ${termLevel(term) ? escapeHtml(termLevel(term)) + " · " + termLevelSource(term) : "úroveň " + termLevelSource(term)}</div><a class="subtle-button" href="${finnlyLookupUrl(term.lemma)}" target="_blank" rel="noopener noreferrer">Ověřit orientační úroveň na Finnly ↗</a>${contextHtml}`;
+    let content = `<span class="type-chip">${escapeHtml(typeLabel(term.type))}</span><div class="lemma-large">${escapeHtml(term.lemma)}</div><div class="pronunciation-hint">${number(term.count)} výskytů · ${number(term.context_count)} kontextů · ${termLevel(term) ? escapeHtml(termLevel(term)) + " · " + termLevelSource(term) : "úroveň " + termLevelSource(term)}</div>${termLevelNote(term) ? `<div class="section-subtitle">${escapeHtml(termLevelNote(term))}</div>` : ""}<a class="subtle-button" href="${finnlyLookupUrl(term.lemma)}" target="_blank" rel="noopener noreferrer">Ověřit orientační úroveň na Finnly ↗</a>${contextHtml}`;
     if (!cardRevealed && cardMode === "typing") content += `<div class="answer-area"><label class="form-label" for="cardGuessInput">Napiš ${targetLanguage === "en" ? "English" : "český"} překlad zpaměti</label><input id="cardGuessInput" class="text-input" autocomplete="off" placeholder="Tvá odpověď…"><div class="section-subtitle">Slovo nejdřív zkus napsat bez nápovědy. Pokud ještě nemáš uložený překlad, můžeš ho přidat po odhalení odpovědi.</div></div>`;
     if (cardRevealed) {
       if (cardResult !== null) content += `<div class="quiz-feedback"><strong>${cardResult ? "Správně!" : "Ještě ne."}</strong> ${cardResult ? "Dobrá práce." : "Správný překlad můžeš zkontrolovat níže."}</div>`;
-      content += `<div class="answer-area"><label class="form-label" for="cardMeaningInput">${targetLanguage === "en" ? "English meaning / note" : "Český význam / vlastní poznámka"}</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="cardMeaningInput" class="text-input" maxlength="500" placeholder="${targetLanguage === "en" ? "Add an English meaning…" : "Např. být, existovat…"}" value="${escapeHtml(meaningFor(term.lemma))}"><button class="button" id="suggestCardBtn" type="button">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button class="button soft" id="saveCardMeaningBtn" type="button">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="section-subtitle">${!termLevel(term) ? "Úroveň není ve zdroji uvedena; lze ji nastavit ručně." : ""} Návrh překladu se musí zkontrolovat; Enter překlad uloží.</div><div class="word-row-foot" style="justify-content:center">${Object.entries(term.word_forms || {}).slice(0, 6).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("")}</div></div>`;
+      content += `<div class="answer-area"><label class="form-label" for="cardMeaningInput">${targetLanguage === "en" ? "English meaning / note" : "Český význam / vlastní poznámka"}</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="cardMeaningInput" class="text-input" maxlength="500" placeholder="${targetLanguage === "en" ? "Add an English meaning…" : "Např. být, existovat…"}" value="${escapeHtml(meaningFor(term.lemma))}"><button class="button" id="suggestCardBtn" type="button">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button class="button soft" id="saveCardMeaningBtn" type="button">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="section-subtitle">${!termLevel(term) ? "Po uložení překladu aplikace zkusí navrhnout orientační úroveň; případně ji můžeš nastavit ručně." : "Návrh překladu se musí zkontrolovat; po uložení lze úroveň ručně změnit."} Návrh překladu se musí zkontrolovat; Enter překlad uloží.</div><div class="word-row-foot" style="justify-content:center">${Object.entries(term.word_forms || {}).slice(0, 6).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("")}</div></div>`;
     }
     $("cardContent").innerHTML = content;
     if (!cardRevealed) {
@@ -590,7 +638,7 @@
       const guessInput = $("cardGuessInput"); if (guessInput) guessInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); checkGuess(); } });
     } else {
       actions.innerHTML = `<button class="button danger-soft" id="learningBtn" type="button">↻ Ještě procvičit</button><button class="button primary" id="knownBtn" type="button">✓ Umím</button><button class="button" id="nextCardBtn" type="button">Další →</button>`;
-      const saveCardMeaning = () => { meanings[meaningKey(term.lemma)] = $("cardMeaningInput").value.trim(); writeStore(KEYS.meanings, meanings); toast(targetLanguage === "en" ? "Meaning saved." : "Význam uložen."); renderStats(); };
+      const saveCardMeaning = () => { const estimate = saveMeaning(term.lemma, $("cardMeaningInput").value); const levelMessage = estimate ? ` Orientační návrh úrovně: ${estimate.level} (${estimate.confidence} jistota).` : " Úroveň se z tohoto překladu nedala bezpečně odhadnout."; toast((targetLanguage === "en" ? "Meaning saved." : "Význam uložen.") + levelMessage); renderAll(); };
       $("saveCardMeaningBtn").addEventListener("click", saveCardMeaning);
       $("cardMeaningInput").addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); saveCardMeaning(); } });
       $("suggestCardBtn").addEventListener("click", () => suggestTranslation(term, $("cardMeaningInput"), $("suggestCardBtn")));
@@ -727,11 +775,11 @@
       const lemmaKey = safeKey(term.lemma);
       const status = ratings[lemmaKey] === "known" ? "Umím" : ratings[lemmaKey] === "learning" ? "Procvičit" : "Nové";
       const forms = Object.entries(term.word_forms || {}).slice(0, 5).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("");
-      return `<article class="word-row" data-term-row="${escapeHtml(term.lemma)}"><div class="word-row-head"><div><div class="word-title">${escapeHtml(term.lemma)}</div><div class="word-meta">${escapeHtml(typeLabel(term.type))} · ${escapeHtml(status)}</div></div><div class="meaning-edit"><input class="text-input meaning-input" data-meaning-input="${escapeHtml(term.lemma)}" value="${escapeHtml(meaningFor(term.lemma))}" placeholder="${targetLanguage === "en" ? "English meaning…" : "Český význam…"}" maxlength="500" aria-label="${targetLanguage === "en" ? "English meaning" : "Český význam"} slova ${escapeHtml(term.lemma)}"><button type="button" class="button suggest-meaning" data-suggest-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Suggest" : "Navrhnout"}</button><button type="button" class="button soft save-meaning" data-save-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="word-frequency"><strong>${number(term.count)}×</strong><span>${number(term.context_count)} kontextů</span></div></div><div class="word-row-foot">${forms}<label class="small-label">Úroveň · ${escapeHtml(termLevelSource(term))} <select class="select-input term-level" data-term-level="${escapeHtml(term.lemma)}" aria-label="Úroveň CEFR pro ${escapeHtml(term.lemma)}"><option value="" ${!termLevel(term) ? "selected" : ""}>Nezařazeno</option>${["A1","A2","B1","B2","C1","C2"].map(level => `<option value="${level}" ${termLevel(term) === level ? "selected" : ""}>${level}</option>`).join("")}</select></label><a class="subtle-button" href="${finnlyLookupUrl(term.lemma)}" target="_blank" rel="noopener noreferrer">Ověřit na Finnly ↗</a><button type="button" class="subtle-button toggle-contexts" data-context-lemma="${escapeHtml(term.lemma)}">Zobrazit kontexty (${number(term.contexts.length)}) ↓</button></div><div class="contexts-slot" data-context-slot="${escapeHtml(term.lemma)}" hidden></div></article>`;
+      return `<article class="word-row" data-term-row="${escapeHtml(term.lemma)}"><div class="word-row-head"><div><div class="word-title">${escapeHtml(term.lemma)}</div><div class="word-meta">${escapeHtml(typeLabel(term.type))} · ${escapeHtml(status)}</div></div><div class="meaning-edit"><input class="text-input meaning-input" data-meaning-input="${escapeHtml(term.lemma)}" value="${escapeHtml(meaningFor(term.lemma))}" placeholder="${targetLanguage === "en" ? "English meaning…" : "Český význam…"}" maxlength="500" aria-label="${targetLanguage === "en" ? "English meaning" : "Český význam"} slova ${escapeHtml(term.lemma)}"><button type="button" class="button suggest-meaning" data-suggest-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Suggest" : "Navrhnout"}</button><button type="button" class="button soft save-meaning" data-save-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="word-frequency"><strong>${number(term.count)}×</strong><span>${number(term.context_count)} kontextů</span></div></div><div class="word-row-foot">${forms}<label class="small-label" title="${escapeHtml(termLevelNote(term))}">Úroveň · ${escapeHtml(termLevelSource(term))} <select class="select-input term-level" data-term-level="${escapeHtml(term.lemma)}" aria-label="Úroveň CEFR pro ${escapeHtml(term.lemma)}"><option value="" ${!termLevel(term) ? "selected" : ""}>Nezařazeno</option>${["A1","A2","B1","B2","C1","C2"].map(level => `<option value="${level}" ${termLevel(term) === level ? "selected" : ""}>${level}</option>`).join("")}</select></label><a class="subtle-button" href="${finnlyLookupUrl(term.lemma)}" target="_blank" rel="noopener noreferrer">Ověřit na Finnly ↗</a><button type="button" class="subtle-button toggle-contexts" data-context-lemma="${escapeHtml(term.lemma)}">Zobrazit kontexty (${number(term.contexts.length)}) ↓</button></div>${termLevelNote(term) ? `<div class="section-subtitle" style="padding:0 14px 12px">${escapeHtml(termLevelNote(term))}</div>` : ""}<div class="contexts-slot" data-context-slot="${escapeHtml(term.lemma)}" hidden></div></article>`;
     }).join("");
     $("wordList").querySelectorAll(".save-meaning").forEach(button => button.addEventListener("click", () => {
       const lemma = button.dataset.saveMeaning; const input = $("wordList").querySelector(`[data-meaning-input="${CSS.escape(lemma)}"]`);
-      meanings[meaningKey(lemma)] = input ? input.value.trim() : ""; writeStore(KEYS.meanings, meanings); toast(`Význam pro „${lemma}“ uložen.`); renderStats(); renderOverview();
+      const estimate = saveMeaning(lemma, input ? input.value.trim() : ""); toast(`Význam pro „${lemma}“ uložen.${estimate ? ` Orientační úroveň ${estimate.level} (${estimate.confidence} jistota).` : " Úroveň se z tohoto překladu nedala bezpečně odhadnout."}`); renderAll();
     }));
     $("wordList").querySelectorAll(".suggest-meaning").forEach(button => button.addEventListener("click", () => {
       const lemma = button.dataset.suggestMeaning; const term = terms.find(item => safeKey(item.lemma) === safeKey(lemma));
@@ -739,7 +787,7 @@
       if (term && input) suggestTranslation(term, input, button);
     }));
     $("wordList").querySelectorAll(".meaning-input").forEach(input => input.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); const save = $("wordList").querySelector(`[data-save-meaning="${CSS.escape(input.dataset.meaningInput)}"]`); if (save) save.click(); } }));
-    $("wordList").querySelectorAll(".term-level").forEach(select => select.addEventListener("change", () => { const key = safeKey(select.dataset.termLevel); levelOverrides[key] = select.value; writeStore(KEYS.levels, levelOverrides); renderCards(); toast("Úroveň uložena."); }));
+    $("wordList").querySelectorAll(".term-level").forEach(select => select.addEventListener("change", () => { const key = safeKey(select.dataset.termLevel); levelOverrides[key] = select.value; writeStore(KEYS.levels, levelOverrides); renderAll(); toast("Úroveň uložena."); }));
     $("wordList").querySelectorAll(".toggle-contexts").forEach(button => button.addEventListener("click", () => {
       const lemma = button.dataset.contextLemma; const term = terms.find(t => safeKey(t.lemma) === safeKey(lemma)); const slot = $("wordList").querySelector(`[data-context-slot="${CSS.escape(lemma)}"]`);
       if (!slot || !term) return;
@@ -771,7 +819,7 @@
     if (tab === "dictionary") renderDictionary();
   }
   function exportProgress() {
-    const payload = { exported_at: new Date().toISOString(), meanings, ratings, review_schedule: reviewSchedule, levels: levelOverrides, target_language: targetLanguage, quiz_stats: quizStats, note: "Tento soubor obsahuje studijní pokrok, nikoli slovní databázi." };
+    const payload = { exported_at: new Date().toISOString(), meanings, ratings, review_schedule: reviewSchedule, levels: levelOverrides, level_estimates: levelEstimates, target_language: targetLanguage, quiz_stats: quizStats, note: "Tento soubor obsahuje studijní pokrok, nikoli slovní databázi." };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "sanasto_studijni_pokrok.json"; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
     toast("Záloha pokroku byla připravena ke stažení.");
