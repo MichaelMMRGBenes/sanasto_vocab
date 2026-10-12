@@ -7,7 +7,7 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 - Studijní kartičky s hodnocením „Umím“ / „Ještě procvičit“
 - Denní sada až 10 častých slov; nová a splatná slova mají přednost
 - Rozložené opakování známých slov s intervaly 1, 3, 7 a 14 dní
-- Úroveň A1–C2 se načte pouze z explicitního pole `level`/`cefr` ve slovníku; pokud ji zdroj neuvádí, zůstane nezařazená a lze ji změnit ručně
+- Úroveň A1–C2 se načte pouze z explicitního pole `level`/`cefr` ve slovníku; pokud ji zdroj neuvádí, zůstane nezařazená a lze ji změnit ručně po ověření orientačního seznamu Finnly
 - Volba jazyka vlastních překladů (čeština nebo angličtina) z rozbalovací nabídky
 - Návrh překladu přes MyMemory; uživatel ho může upravit, přijmout nebo přepsat
 - Režim „Napiš překlad“ pro aktivní vybavování vedle běžných kartiček
@@ -27,7 +27,7 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 
 ## Vlastní slovník a soukromí
 
-Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Osobní slovní databáze do veřejného repozitáře nepřidávej. Importovaná databáze, překlady, úrovně a hodnocení zůstávají v místním úložišti prohlížeče. Úroveň se nikdy neodvozuje od četnosti výskytu. CEFR neurčuje oficiální seznam jednotlivých finských slov; různé výukové zdroje mohou stejné slovo zařadit odlišně. Aplikace proto přijímá úrovně uvedené přímo ve zdrojových datech nebo ručně nastavené uživatelem a neoznačená slova nechává nezařazená. Návrh překladu se dotáže služby MyMemory až po potvrzení; odešle jí pouze právě vybrané finské lemma, nikoli kontextovou větu nebo celý slovník. Návrh vždy zkontroluj.
+Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Osobní slovní databáze do veřejného repozitáře nepřidávej. Importovaná databáze, překlady, úrovně a hodnocení zůstávají v místním úložišti prohlížeče. Úroveň se nikdy neodvozuje od četnosti výskytu. CEFR neurčuje oficiální seznam jednotlivých finských slov; různé výukové zdroje mohou stejné slovo zařadit odlišně. Aplikace proto přijímá úrovně uvedené přímo ve zdrojových datech nebo ručně nastavené uživatelem a neoznačená slova nechává nezařazená. Odkaz **Ověřit na Finnly** otevře vyhledání konkrétního lemmatu v jejich veřejných stránkách; Finnly je pouze orientační studijní seznam, nikoli oficiální slovník. Úroveň po kontrole nastav už v aplikaci. Automatické stahování nebo kopírování jejich seznamu aplikace neprovádí, v souladu s [podmínkami Finnly](https://getfinnly.com/terms), které zakazují automatické získávání obsahu ve větším rozsahu. Návrh překladu se dotáže služby MyMemory až po potvrzení; odešle jí pouze právě vybrané finské lemma, nikoli kontextovou větu nebo celý slovník. Návrh vždy zkontroluj.
 
 ## Lokální spuštění
 
