@@ -881,8 +881,12 @@
     if (!game) return;
     if (!game.selectedFinnish || !game.selectedTranslation) {
       $("quizOptions").querySelectorAll(".match-option").forEach(button => {
-        const key = button.dataset.matchFi || button.dataset.matchTranslation;
-        const selected = key === game.selectedFinnish || key === game.selectedTranslation;
+        // IDs are shared across columns to identify a pair, but selection state is not.
+        // Comparing both IDs here reveals the corresponding correct translation early.
+        const isFinnish = button.hasAttribute("data-match-fi");
+        const selected = isFinnish
+          ? button.dataset.matchFi === game.selectedFinnish
+          : button.dataset.matchTranslation === game.selectedTranslation;
         button.classList.toggle("selected", selected);
         button.setAttribute("aria-pressed", String(selected));
       });
