@@ -5,14 +5,13 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 ## Funkce
 
 - Studijní kartičky s hodnocením „Umím“ / „Ještě procvičit“
-- Denní sada až 10 častých slov; nová a splatná slova mají přednost
+- Viditelný denní seznam až 10 nových nebo právě splatných slov, vybíraných s ohledem na četnost
 - Rozložené opakování známých slov s intervaly 1, 3, 7 a 14 dní
-- Orientační návrh A1–B2 po uložení překladu podle jeho základního významu a tematických vodítek; odhad má nízkou/střední jistotu a lze ho upravit. Úrovně A1–C2 z polí `level`/`cefr` nebo ruční volba mají přednost
+- Orientační A1–C2 podle relativního pořadí četnosti v načtené databázi; ruční úroveň nebo platné CEFR záznamy mají přednost
 - Volba jazyka vlastních překladů (čeština nebo angličtina) z rozbalovací nabídky
-- Návrh překladu přes MyMemory; uživatel ho může upravit, přijmout nebo přepsat
+- Návrh překladu přes MyMemory po potvrzení; na kartičce se při odhalení připraví automaticky a před uložením jej lze upravit
 - Režim „Napiš překlad“ pro aktivní vybavování vedle běžných kartiček
-- Kvíz na doplňování lemmat do vět
-- Rozbalení širšího kontextu věty; otázky kvízu se zobrazí jen tehdy, když lze určit vynechaný tvar
+- Párovací hra: spojení pěti finských slov s pěti českými nebo anglickými překlady
 - Vyhledávání, filtrování a řazení slovníku
 - Potvrzení překladu klávesou Enter a ukládání pokroku v místním úložišti prohlížeče
 - Export studijního pokroku jako zálohy
@@ -27,7 +26,7 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 
 ## Vlastní slovník a soukromí
 
-Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Osobní slovní databáze do veřejného repozitáře nepřidávej. Importovaná databáze, překlady, úrovně a hodnocení zůstávají v místním úložišti prohlížeče. Úroveň se nikdy neodvozuje od četnosti výskytu. Po uložení překladu se aplikace pokusí navrhnout A1–B2 podle významových vodítek v překladu; návrh je orientační, uvádí jistotu a zůstává upravitelný. Když vodítka nestačí, úroveň nenavrhne. Úroveň ze zdrojových polí `level`/`cefr` a ruční volba mají přednost. CEFR neurčuje oficiální seznam jednotlivých finských slov, takže stejné slovo mohou výukové zdroje zařadit různě. Odkaz **Ověřit na Finnly** otevře vyhledání konkrétního lemmatu v jejich veřejných stránkách; Finnly je pouze orientační studijní seznam, nikoli oficiální slovník. Automatické stahování nebo kopírování jejich seznamu aplikace neprovádí, v souladu s [podmínkami Finnly](https://getfinnly.com/terms). Odhad úrovně používá jen lokálně uložený překlad a nic kvůli odhadu neodesílá. Návrh překladu se dotáže služby MyMemory až po potvrzení; odešle jí pouze právě vybrané finské lemma, nikoli kontextovou větu nebo celý slovník. Návrh vždy zkontroluj.
+Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Osobní slovní databázi do veřejného repozitáře nepřidávej. Importovaná databáze, překlady, úrovně a hodnocení zůstávají v místním úložišti prohlížeče. Odhad úrovně řadí lemmata podle četnosti v právě načteném slovníku a orientačně je rozděluje do šesti pásem A1–C2. Jde pouze o pomocné pořadí uvnitř osobní databáze, nikoli o oficiální CEFR hodnocení. Platné úrovně ze zdrojových polí `level`/`cefr` a ruční volba mají přednost. Překlady můžeš dostat od MyMemory při odhalení kartičky nebo v párovací hře; před prvním dotazem se aplikace zeptá na souhlas a odešle jen jednotlivé finské lemma, nikoli větu nebo celý slovník. V párovací hře návrhy před použitím uprav nebo potvrď. Návrhy mohou být nepřesné.
 
 ## Lokální spuštění
 
