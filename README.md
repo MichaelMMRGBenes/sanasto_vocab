@@ -5,18 +5,19 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 ## Funkce
 
 - Studijní kartičky s hodnocením „Umím“ / „Ještě procvičit“
-- Viditelný denní seznam až 10 nových nebo právě splatných slov, vybíraných s ohledem na četnost
-- Studijní lekce po nejvýše 10 slovech, se zvýrazněním postupu v každé lekci
+- Samostatná denní karta s až 10 novými nebo právě splatnými slovy a počítadlem procvičení napříč cvičeními
+- Studijní lekce po nejvýše 10 slovech, s interním přepínáním, přehledem postupu a animací po dokončení
 - Rozložené opakování známých slov s intervaly 1, 3, 7 a 14 dní
 - Orientační A1–C2 podle relativního pořadí četnosti v načtené databázi; ruční úroveň nebo platné CEFR záznamy mají přednost
 - Volba jazyka překladů (čeština nebo angličtina); při volbě angličtiny se přepne celé rozhraní
-- Návrh překladu přes MyMemory; při nastavení vlastního oficiálního klíče také přes Sanakirja.fi API pro finštinu–angličtinu
+- Návrh překladu jednotlivého slova přes MyMemory; při překladu se ukazují také kontexty z databáze
 - Samostatná karta pro rychlé doplňování překladů: návrh vždy pro jedno slovo, Enter překlad uloží, Escape slovo vyřadí z učení a uložený překlad lze upravit
-- Režim „Napiš překlad“ jen pro slova s uloženým překladem a režim doplnění finského slova do kontextové věty
+- Samostatné procvičování: kartičky, napsání překladu, doplnění finského tvaru do kontextu a výběr překladu ze čtyř možností
 - Kontextová nápověda ukáže překlad a přibližný gramatický tvar; kontrola přijímá běžné varianty i drobný překlep
 - Párovací hra: pět finských slov a pět samostatně promíchaných uložených překladů; správné dvojice se neodhalují před výběrem, každá se počítá jako procvičení a po dokončení kola se za 2 sekundy spustí další
 - Slovník s filtrem podle úrovně, slovního druhu, tématu a stavu učení; zobrazuje slova s četností alespoň 0,1 % celkových výskytů a umožňuje je vyřadit z procvičování
-- Oprava importovaného lemmatu i slovního druhu; oprava zachová uložený překlad a studijní pokrok
+- Oprava importovaného lemmatu i slovního druhu; při duplicitě lze lemmata sloučit včetně četností, tvarů, kontextů a pokroku
+- Rozdělení lemmatu podle vybraných povrchových tvarů, například při rozlišném významu; oprava, sloučení a rozdělení se zachovají při dalším importu
 - Automatické návrhy sémantických témat (například zvířata, jídlo, domov a cestování), které lze ve slovníku změnit
 - Série učení a odznaky za pravidelné učení, překlady a dokončené párovací kolo
 - Potvrzení překladu klávesou Enter a ukládání pokroku v místním úložišti prohlížeče
@@ -33,10 +34,6 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 ## Vlastní slovník a soukromí
 
 Aplikace začíná v ukázkovém režimu s ilustračními větami. Stiskni **Načíst slovník JSON** a vyber svůj `vocabulary_db.json`, který vytváří Python skript. Osobní slovní databázi do veřejného repozitáře nepřidávej. Importovaná databáze, překlady, úrovně, opravy lemmat, témata, vyřazení slov a hodnocení zůstávají v místním úložišti prohlížeče. Odhad úrovně řadí lemmata podle četnosti v právě načteném slovníku a orientačně je rozděluje do šesti pásem A1–C2. Jde pouze o pomocné pořadí uvnitř osobní databáze, nikoli o oficiální CEFR hodnocení. Platné úrovně ze zdrojových polí `level`/`cefr` a ruční volba mají přednost. Překlady navrhuje MyMemory; před prvním dotazem se aplikace zeptá na souhlas a odešle jen jedno finské lemma, nikoli větu nebo celý slovník. Návrh může být nepřesný, proto jej vždy zkontroluj před uložením. Export studijního pokroku zahrnuje i opravy slov, témata, vyřazená slova, sérii a odznaky.
-
-## Sanakirja.fi API
-
-Volitelný druhý zdroj překladů používá oficiální MOT Sanakirjat API pro finsko-anglické návrhy. API key si vyžádej od Kielikone na stránce [api.sanakirja.fi](https://api.sanakirja.fi/) a vlož jej v části **Přehled**. Klíč zůstane pouze v paměti aktuální karty a po obnovení stránky jej bude třeba zadat znovu. Aplikace odešle jedno lemma; věty a celý slovník se neposílají. Bez klíče zůstává dostupný MyMemory.
 
 ## Lokální spuštění
 
