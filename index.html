@@ -158,6 +158,13 @@
     .context-list { margin-top: 13px; display: grid; gap: 8px; }
     .context-item { border-left: 2px solid var(--line); padding: 8px 12px; background: var(--surface-soft); border-radius: 0 10px 10px 0; font-size: .85rem; }
     .context-item p { margin: 0; }
+    .context-exercise { margin-top:18px; padding:16px; border:1px solid var(--line); border-radius:14px; background:var(--surface-soft); }
+    .context-exercise p { font-size:1.05rem; line-height:1.8; margin:0; }
+    .context-blank { display:inline-block; min-width:86px; border-bottom:2px solid var(--green); text-align:center; color:var(--green); font-weight:850; }
+    .context-hints { display:grid; gap:5px; margin-top:13px; color:var(--muted); font-size:.86rem; }
+    .api-key-tools { display:flex; align-items:end; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .api-key-tools .text-input { flex:1; min-width:220px; }
+    .api-key-status { min-height:1.3em; margin-top:7px; color:var(--muted); font-size:.78rem; }
     .context-item small { display: block; margin-top: 4px; color: var(--muted); font-size: .72rem; }
     .overview-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 18px; }
     .table-wrap { overflow-x: auto; }
@@ -281,7 +288,7 @@
               <option value="known">Už umím</option>
             </select>
             <label class="sr-only" for="lessonSelect">Studijní lekce</label><select class="select-input" id="lessonSelect" style="width:auto;min-width:180px" aria-label="Vybrat lekci"></select>
-            <label class="sr-only" for="cardMode">Způsob procvičování</label><select class="select-input" id="cardMode" style="width:auto"><option value="cards">Kartičky</option><option value="typing">Napiš překlad</option></select>
+            <label class="sr-only" for="cardMode">Způsob procvičování</label><select class="select-input" id="cardMode" style="width:auto"><option value="cards">Kartičky</option><option value="typing">Napiš překlad</option><option value="context">Doplň do kontextu</option></select>
             <button type="button" class="button" id="shuffleBtn">Zamíchat</button>
           </div>
         </div>
@@ -300,7 +307,7 @@
       </section>
 
       <section class="panel" id="panel-quiz">
-        <div class="section-heading"><div><h2>Spoj finské slovo s překladem</h2><p class="section-subtitle">Vyber jedno finské slovo a potom jeho český překlad. Najdi všech pět dvojic.</p></div><span class="type-chip" id="quizAvailable" aria-live="polite">Párovací hra</span></div>
+        <div class="section-heading"><div><h2>Spoj finské slovo s překladem</h2><p class="section-subtitle">Vyber jedno finské slovo a potom jeho překlad. Najdi všech pět dvojic.</p></div><span class="type-chip" id="quizAvailable" aria-live="polite">Párovací hra</span></div>
         <article class="card quiz-card" id="quizCard">
           <div class="small-label" id="quizKicker">Kolo 1</div>
           <p class="section-subtitle" id="quizPrompt">Vyber slovo z levého sloupce a jeho překlad z pravého.</p>
@@ -311,12 +318,12 @@
       </section>
 
       <section class="panel" id="panel-quickfill">
-        <div class="section-heading"><div><h2>Rychlé doplnění překladů</h2><p class="section-subtitle">U každého slova dostaneš samostatný návrh. Zkontroluj ho, uprav a potvrď Enterem. Escape vrátí původní překlad nebo zruší rozpracovaný návrh.</p></div></div>
-        <article class="card quick-fill-card" aria-live="polite"><div class="small-label" id="quickFillProgress">Slovo 1</div><div class="quick-fill-word" id="quickFillLemma">—</div><div class="section-subtitle" id="quickFillMeta"></div><label class="form-label" for="quickFillInput" id="quickFillLabel">Český překlad</label><div class="quick-fill-input"><input class="text-input" id="quickFillInput" maxlength="500" autocomplete="off" placeholder="Navrhovaný překlad…"><button class="button" type="button" id="suggestQuickFillBtn">Navrhnout znovu</button></div><div class="section-subtitle" id="quickFillStatus" aria-live="polite"></div><div class="toolbar" style="justify-content:flex-end;margin-top:18px"><label class="form-label" style="margin:0;display:flex;align-items:center;gap:7px"><input type="checkbox" id="includeTranslatedToggle"> Zahrnout uložené překlady k úpravě</label><button class="button" type="button" id="cancelQuickFillBtn">Zrušit · Esc</button><button class="button" type="button" id="skipQuickFillBtn">Přeskočit →</button><button class="button primary" type="button" id="saveQuickFillBtn">Potvrdit · Enter</button></div></article>
+        <div class="section-heading"><div><h2>Rychlé doplnění překladů</h2><p class="section-subtitle">U každého slova dostaneš samostatný návrh. Zkontroluj ho, uprav a potvrď Enterem. Escape vyřadí právě zobrazené slovo z učení.</p></div></div>
+        <article class="card quick-fill-card" aria-live="polite"><div class="small-label" id="quickFillProgress">Slovo 1</div><div class="quick-fill-word" id="quickFillLemma">—</div><div class="section-subtitle" id="quickFillMeta"></div><label class="form-label" for="quickFillInput" id="quickFillLabel">Český překlad</label><div class="quick-fill-input"><input class="text-input" id="quickFillInput" maxlength="500" autocomplete="off" placeholder="Navrhovaný překlad…"><button class="button" type="button" id="suggestQuickFillBtn">Navrhnout znovu</button></div><div class="section-subtitle" id="quickFillStatus" aria-live="polite"></div><div class="toolbar" style="justify-content:flex-end;margin-top:18px"><label class="form-label" style="margin:0;display:flex;align-items:center;gap:7px"><input type="checkbox" id="includeTranslatedToggle"> Zahrnout uložené překlady k úpravě</label><button class="button" type="button" id="cancelQuickFillBtn">Zrušit úpravu</button><button class="button danger-soft" type="button" id="excludeQuickFillBtn">Vyřadit z učení · Esc</button><button class="button" type="button" id="skipQuickFillBtn">Přeskočit →</button><button class="button primary" type="button" id="saveQuickFillBtn">Potvrdit · Enter</button></div></article>
       </section>
 
       <section class="panel" id="panel-dictionary">
-        <div class="section-heading"><div><h2>Osobní slovník</h2><p class="section-subtitle">Vyhledej slovo, doplň si český význam a rozbal všechny zaznamenané kontexty.</p></div></div>
+        <div class="section-heading"><div><h2>Osobní slovník</h2><p class="section-subtitle">Slovník zobrazuje slova s četností alespoň 0,1 % výskytů databáze. Vyhledej slovo nebo rozbal jeho kontexty.</p></div></div>
         <div class="dictionary-tools">
           <input class="text-input" type="search" id="dictionarySearch" placeholder="Hledat lemma, tvar nebo český význam…" aria-label="Hledat ve slovníku">
           <select class="select-input" id="typeFilter" aria-label="Filtrovat podle slovního druhu"><option value="all">Všechny slovní druhy</option></select>
@@ -326,6 +333,7 @@
           <select class="select-input" id="sortFilter" aria-label="Řazení slov"><option value="frequency">Nejčastější první</option><option value="alpha">Abecedně</option><option value="contexts">Nejvíce kontextů</option><option value="learning">Nejprve procvičovat</option></select>
         </div>
         <div class="dictionary-summary" id="dictionarySummary"></div>
+        <div class="dictionary-summary" id="dictionaryFrequencyNote"></div>
         <div class="word-list" id="wordList"></div>
       </section>
 
@@ -333,7 +341,7 @@
         <div class="section-heading"><div><h2>Přehled učení</h2><p class="section-subtitle">Rychlý pohled na četnost slov, hodnocení a slovní druhy v načtené sadě.</p></div><button class="button" id="exportDataBtn" type="button">Exportovat pokrok</button></div>
         <div class="overview-grid">
           <section class="card side-card"><h3>Nejčastější slova</h3><div class="table-wrap"><table><thead><tr><th>Lemma</th><th>Druh</th><th>Výskyty</th></tr></thead><tbody id="topTable"></tbody></table></div></section>
-          <section class="card side-card"><h3>Stav slovní zásoby</h3><div id="statusOverview"></div><div style="margin-top:20px"><h3>Data a soukromí</h3><p class="section-subtitle">Slovník se zpracovává přímo v prohlížeči. Významy a hodnocení se ukládají do místního úložiště tohoto prohlížeče; na GitHub se samy neposílají.</p></div></section>
+          <section class="card side-card"><h3>Stav slovní zásoby</h3><div id="statusOverview"></div><div style="margin-top:20px"><h3>Data a soukromí</h3><p class="section-subtitle">Slovník se zpracovává přímo v prohlížeči. Významy a hodnocení se ukládají do místního úložiště tohoto prohlížeče; na GitHub se samy neposílají.</p><h3 style="margin-top:18px">Sanakirja.fi · druhý zdroj překladů</h3><p class="section-subtitle">Oficiální API vyžaduje klíč od Kielikone. Po zadání se bude používat pro finsko-anglické návrhy; klíč zůstane jen v paměti této karty a po obnovení stránky ho zadej znovu.</p><label class="form-label" for="sanakirjaApiKey">API key</label><div class="api-key-tools"><input class="text-input" type="password" id="sanakirjaApiKey" autocomplete="off" placeholder="Vlož svůj Sanakirja API key"><button class="button" type="button" id="saveSanakirjaKeyBtn">Použít v této kartě</button><button class="button soft" type="button" id="clearSanakirjaKeyBtn">Vymazat</button></div><div class="api-key-status" id="sanakirjaKeyStatus" aria-live="polite">Klíč není nastaven; používá se MyMemory.</div><a href="https://api.sanakirja.fi/" target="_blank" rel="noopener noreferrer">Jak získat oficiální API key</a></div></section>
           <section class="card side-card" style="grid-column:1/-1"><h3>Odznaky</h3><p class="section-subtitle">Za pravidelné učení, dokončené překlady a párovací kola získáš malé cíle.</p><div class="achievement-grid" id="achievementGrid"></div></section>
         </div>
       </section>
@@ -402,6 +410,142 @@
     home: "Domov", nature: "Příroda a počasí", travel: "Cestování", work: "Práce a škola",
     time: "Čas a čísla", feelings: "Pocity a myšlenky", other: "Ostatní"
   };
+  const TYPE_LABELS_EN = {
+    noun: "Noun", verb: "Verb", adjective: "Adjective", pronoun: "Pronoun", adverb: "Adverb",
+    adposition: "Preposition / postposition", conjunction: "Conjunction", interjection: "Interjection",
+    numeral: "Numeral", unknown: "Unknown", other: "Other", nimisana: "Noun", teonsana: "Verb",
+    laatusana: "Adjective", asemasana: "Pronoun", seikkasana: "Adverb", suhdesana: "Preposition / postposition",
+    lukusana: "Numeral", huudahdussana: "Interjection"
+  };
+  const CATEGORY_LABELS_EN = {
+    animals: "Animals", food: "Food and drink", people: "People and family", body: "Body and health",
+    home: "Home", nature: "Nature and weather", travel: "Travel", work: "Work and school",
+    time: "Time and numbers", feelings: "Feelings and thoughts", other: "Other"
+  };
+  const UI_EN = {
+    "finský osobní slovník": "Personal Finnish vocabulary", "sanasto · osobní finská slovní zásoba": "sanasto · personal Finnish vocabulary",
+    "Úroveň: všechny": "Level: all", "Úroveň slovní zásoby": "Vocabulary level", "Všechny úrovně": "All levels",
+    "A1 · začátečník": "A1 · beginner", "A2 · mírně pokročilý": "A2 · elementary", "B1 · středně pokročilý": "B1 · intermediate",
+    "B2 · vyšší středně pokročilý": "B2 · upper intermediate", "C1 · pokročilý": "C1 · advanced", "C2 · zkušený uživatel": "C2 · proficient",
+    "Nezařazená slova": "Unassigned words", "Překlad: čeština": "Translation: Czech", "Čeština": "Czech",
+    "Exportovat pokrok": "Export progress", "＋ Načíst slovník JSON": "＋ Import vocabulary JSON", "Vybrat soubor vocabulary_db.json": "Choose vocabulary_db.json",
+    "Slova si zapamatuješ.": "Remember the words.", "Kontext ti je ukotví.": "Context makes them stick.",
+    "Procvičuj finská lemmata ze svých přepisů Whisper. Sleduj četnost, vracej se k větám, doplňuj české významy a postupně si buduj vlastní slovník.": "Study Finnish lemmas from your Whisper transcripts. Track frequency, revisit example sentences, add English meanings, and build your own dictionary.",
+    "Tvoje slovní zásoba, na jednom místě": "Your vocabulary, all in one place",
+    "Načti soubor vocabulary_db.json vytvořený skriptem Python. Významy a studijní pokrok zůstávají uložené v tomto prohlížeči.": "Load the vocabulary_db.json file created by the Python script. Meanings and study progress stay in this browser.",
+    "Souhrn slovní zásoby": "Vocabulary summary", "Slovní hesla": "Dictionary entries", "unikátní lemmata": "unique lemmas",
+    "Výskyty slov": "Word occurrences", "napříč načtenými dny": "across imported days", "Kontexty": "Contexts",
+    "záznamy použití slov": "recorded word uses", "Známá slova": "Known words", "označená jako „umím“": "marked as known",
+    "Série učení 🔥": "Learning streak 🔥", "Začni dnešní lekci": "Start today's lesson", "Dnešní učení započítáno": "Today's study counted",
+    "Pokračuj a udrž sérii": "Keep going to maintain your streak", "den": "day", "dní": "days",
+    "Sekce aplikace": "App sections", "Kartičky": "Flashcards", "Spojování slov": "Word matching", "Doplnit překlady": "Add translations",
+    "Jazyk překladu": "Translation language", "Úroveň slovní zásoby": "Vocabulary level",
+    "Slovník": "Dictionary", "Přehled": "Overview", "Ukázkový režim.": "Demo mode.",
+    "Pět nejčastějších lemmat vychází z tvého výpisu; věty jsou pouze ilustrační. Načti JSON pro plnou sadu.": "The five most frequent lemmas come from your sample; sentences are illustrative. Load JSON to use your full dataset.",
+    "Načíst data": "Load data", "Studijní kartičky": "Study flashcards",
+    "Denní sada vybere až 10 častých nových nebo právě splatných slov. Přepni na psaní překladu, procvič si vybavování zpaměti a známá slova se budou vracet v delších rozestupech.": "The daily set selects up to 10 frequent new or due words. Type translations from memory, then review known words at longer intervals.",
+    "Výběr kartiček": "Choose cards", "Aktuální lekce · 10 slov": "Current lesson · 10 words", "Dnešní sada · max. 10": "Today's set · up to 10",
+    "Všechna slova": "All words", "Ještě procvičit": "Needs practice", "Dosud nehodnocená": "Unrated", "Už umím": "Known",
+    "Studijní lekce": "Study lesson", "Vybrat lekci": "Choose a lesson", "Způsob procvičování": "Study mode", "Napiš překlad": "Type the translation",
+    "Doplň do kontextu": "Complete the sentence", "Zamíchat": "Shuffle", "Aktuální karta": "Current card", "Nové slovo": "New word",
+    "Hotovo": "Done", "V tomto filtru nic nezbývá.": "Nothing left in this filter.",
+    "Změň filtr nebo přidej další slova do slovníku.": "Change the filter or add more words to the dictionary.",
+    "Zobrazit všechna slova": "Show all words", "Tvůj postup": "Your progress", "Slova v sadě": "Words in set",
+    "Umíš": "Known", "Čeká na hodnocení": "Awaiting rating", "Dnešních 10 slov": "Today's 10 words",
+    "Procvičit dnešní výběr": "Study today's set", "Dnes není žádné slovo splatné.": "No words are due today.",
+    "Spoj finské slovo s překladem": "Match Finnish words with translations", "Vyber jedno finské slovo a potom jeho překlad. Najdi všech pět dvojic.": "Select a Finnish word and then its translation. Find all five pairs.",
+    "Párovací hra": "Matching game", "Párovací hra · 5 dvojic": "Matching game · 5 pairs",
+    "Vyber slovo z levého sloupce a jeho překlad z pravého.": "Choose a word in the left column and its translation in the right.",
+    "Vyber slovo z levého sloupce a jeho překlad z pravého. Najdi všech pět dvojic.": "Choose a word in the left column and its translation in the right. Find all five pairs.",
+    "Finská slova": "Finnish words", "Překlady": "Translations", "Výborně!": "Great job!", "Všech pět dvojic je správně.": "All five pairs are correct.",
+    "Další kolo →": "Next round →", "Spoj všech 5 dvojic.": "Match all 5 pairs.", "Připraveno na nové kolo": "Ready for a new round",
+    "Zatím máš": "You have", "potřebných různých překladů": "distinct translations needed", "Po spuštění budou finská slova i překlady samostatně promíchané.": "Finnish words and translations will be shuffled separately when the game starts.",
+    "Doplň další slova v kartě rychlých překladů; do hry se načtou až po uložení.": "Add more words in Quick translations; they will appear here after you save them.",
+    "Začít párování": "Start matching", "Pokusy:": "Attempts:", "správné dvojice:": "correct pairs:", "Nová slova": "New words",
+    "Rychlé doplnění překladů": "Quick translations", "Český překlad": "Czech translation", "Navrhovaný překlad…": "Suggested translation…",
+    "U každého slova dostaneš samostatný návrh. Zkontroluj ho, uprav a potvrď Enterem. Escape vyřadí právě zobrazené slovo z učení.": "Each word gets its own translation suggestion. Review or edit it and press Enter to accept. Escape excludes the current word from learning.",
+    "Navrhnout znovu": "Suggest again", "Zahrnout uložené překlady k úpravě": "Include saved translations to edit",
+    "Zrušit úpravu": "Cancel edit", "Vyřadit z učení · Esc": "Exclude from learning · Esc", "Přeskočit →": "Skip →",
+    "Potvrdit · Enter": "Accept · Enter", "Osobní slovník": "Personal dictionary",
+    "Slovník zobrazuje slova s četností alespoň 0,1 % výskytů databáze. Vyhledej slovo nebo rozbal jeho kontexty.": "The dictionary shows words with a frequency of at least 0.1% of all database occurrences. Search for a word or expand its contexts.",
+    "Hledat lemma, tvar nebo český význam…": "Search lemma, form, or English meaning…", "Hledat ve slovníku": "Search dictionary",
+    "Všechny slovní druhy": "All parts of speech", "Filtrovat podle slovního druhu": "Filter by part of speech",
+    "Filtrovat podle úrovně": "Filter by level", "Všechna témata": "All topics", "Filtrovat podle tématu": "Filter by topic",
+    "Slova k učení": "Words to learn", "Vyřazená slova": "Excluded words", "Všechna slova": "All words",
+    "Filtrovat vyloučená slova": "Filter excluded words", "Nejčastější první": "Most frequent first", "Abecedně": "Alphabetical",
+    "Nejvíce kontextů": "Most contexts", "Nejprve procvičovat": "Needs practice first", "Řazení slov": "Sort words",
+    "Přehled učení": "Learning overview", "Rychlý pohled na četnost slov, hodnocení a slovní druhy v načtené sadě.": "A quick view of word frequency, ratings, and parts of speech in the loaded set.",
+    "Nejčastější slova": "Most frequent words", "Lemma": "Lemma", "Druh": "Part of speech", "Výskyty": "Occurrences",
+    "Stav slovní zásoby": "Vocabulary status", "Data a soukromí": "Data and privacy",
+    "Slovník se zpracovává přímo v prohlížeči. Významy a hodnocení se ukládají do místního úložiště tohoto prohlížeče; na GitHub se samy neposílají.": "The dictionary is processed in your browser. Meanings and ratings are saved in this browser's local storage and are not sent to GitHub.",
+    "Odznaky": "Achievements", "Za pravidelné učení, dokončené překlady a párovací kola získáš malé cíle.": "Earn small rewards for regular study, completed translations, and matching rounds.",
+    "finský osobní slovník": "Personal Finnish vocabulary", "Statická aplikace · vhodná pro GitHub Pages": "Static app · works with GitHub Pages",
+    "bez úrovně": "no level", "bez tématu": "no topic", "Nezařazeno": "Unassigned", "Automatický návrh / bez tématu": "Automatic suggestion / no topic",
+    "Úroveň": "Level", "Téma": "Topic", "Vyřazeno": "Excluded", "Procvičit": "Needs practice",
+    "Vrátit do učení": "Return to learning", "Vyřadit z učení": "Exclude from learning", "Zobrazit kontexty": "Show contexts",
+    "Skrýt kontexty ↑": "Hide contexts ↑", "Zobrazit širší kontext ↓": "Show more context ↓", "Skrýt širší kontext ↑": "Hide more context ↑",
+    "Upravit heslo nebo slovní druh": "Edit lemma or part of speech", "Uložit opravu": "Save correction", "Upravit": "Edit",
+    "Nezařazeno": "Unassigned", "Slovo": "Word", "Název": "Name", "Zobrazit kontexty": "Show contexts",
+    "Nic jsme nenašli.": "No words found.", "Zkus jiný hledaný výraz nebo filtr.": "Try a different search or filter.",
+    "Nejdřív doplň nebo navrhni překlad.": "Add or suggest a translation first.", "Přijmout / uložit": "Accept / save",
+    "Pro toto slovo se nepodařilo najít návrh překladu.": "No translation suggestion was found.",
+    "Navrhuji překlad…": "Suggesting a translation…", "Návrh je připraven. Zkontroluj ho a potvrď Enterem.": "Suggestion ready. Review it and press Enter to accept.",
+    "Překlad se nepodařilo navrhnout.": "Could not suggest a translation.", "Návrh překladu se nepodařilo načíst.": "Could not load a translation suggestion.",
+    "Navrhnout překlad": "Suggest translation", "Český význam…": "English meaning…", "Zkontrolovat": "Check",
+    "Ukázat odpověď": "Show answer", "Přeskočit": "Skip", "Napiš": "Type",
+    "Tvar ve větě:": "Form in sentence:", "Kontext": "Context", "Ilustrační věta": "Sample sentence",
+    "Pro toto slovo není v načteném JSON kontextová věta.": "No example sentence for this word was found in the loaded JSON.",
+    "Počet": "Count", "Podstatné jméno": "Noun", "Sloveso": "Verb", "Přídavné jméno": "Adjective",
+    "Zájmeno": "Pronoun", "Příslovce": "Adverb", "Předložka / postpozice": "Preposition / postposition",
+    "Spojka": "Conjunction", "Citoslovce": "Interjection", "Číslovka": "Numeral", "Jiné": "Other",
+    "Zvířata": "Animals", "Jídlo a pití": "Food and drink", "Lidé a rodina": "People and family", "Tělo a zdraví": "Body and health",
+    "Domov": "Home", "Příroda a počasí": "Nature and weather", "Cestování": "Travel", "Práce a škola": "Work and school",
+    "Čas a čísla": "Time and numbers", "Pocity a myšlenky": "Feelings and thoughts", "Ostatní": "Other",
+    "První krok": "First step", "Uč se jeden den.": "Study on one day.", "Tři dny v řadě": "Three-day streak",
+    "Udrž třídenní sérii.": "Maintain a three-day streak.", "Týdenní plamen": "Weekly flame", "Uč se sedm dní v řadě.": "Study seven days in a row.",
+    "Překladatel": "Translator", "Ulož deset překladů.": "Save ten translations.", "Deset jistých": "Ten known words",
+    "Označ deset slov jako známá.": "Mark ten words as known.", "Spojovací talent": "Matching talent", "Dokonči první párovací kolo.": "Complete your first matching round.",
+    "Klíč není nastaven; používá se MyMemory.": "No key set; using MyMemory.", "Klíč vymazán; používá se MyMemory.": "API key cleared; using MyMemory.",
+    "Použít v této kartě": "Use in this tab", "Vymazat": "Clear", "Vlož svůj Sanakirja API key": "Enter your Sanakirja API key",
+    "Sanakirja.fi · druhý zdroj překladů": "Sanakirja.fi · second translation source",
+    "Oficiální API vyžaduje klíč od Kielikone. Po zadání se bude používat pro finsko-anglické návrhy; klíč zůstane jen v paměti této karty a po obnovení stránky ho zadej znovu.": "The official API requires a key from Kielikone. When entered, it will provide Finnish–English suggestions. The key stays in this tab's memory; enter it again after reloading.",
+    "API key je aktivní v této kartě. Anglické návrhy se budou hledat v obou zdrojích.": "API key is active in this tab. English suggestions will use both sources.",
+    "Jak získat oficiální API key": "How to get an official API key", "API key": "API key",
+    "Procvičit znovu": "Practice again", "Nové": "New", "Zkontroluj překlad a potvrď Enterem.": "Review the translation and press Enter to accept.",
+    "Napiš český překlad zpaměti": "Type the Czech translation from memory", "Napiš English překlad zpaměti": "Type the English translation from memory",
+    "↻ Ještě procvičit": "↻ Practice again", "✓ Umím": "✓ Known", "Další →": "Next →",
+    "Tvá odpověď…": "Your answer…", "Správně!": "Correct!", "Ještě ne.": "Not yet.",
+    "Dobrá práce.": "Good work.", "Správný překlad můžeš zkontrolovat níže.": "You can check the correct translation below.",
+    "Slovo nejdřív zkus napsat bez nápovědy. Pokud ještě nemáš uložený překlad, můžeš ho přidat po odhalení odpovědi.": "Try to type the translation from memory. You can add it after revealing the answer if it is not saved yet.",
+    "Při odhalení se pokusím připravit návrh překladu; zkontroluj ho a ulož. ": "I will try to suggest a translation when the answer is revealed; review and save it. ",
+    "Význam je uložený. ": "Translation saved. ", "Enter překlad uloží.": "Press Enter to save the translation.",
+    "Nejdřív přidej nebo navrhni překlad a ulož ho.": "Add or suggest a translation and save it first.",
+    "Nejdřív doplň překlad.": "Add a translation first.", "Uložit pokrok": "Save progress",
+    "Označeno jako známé.": "Marked as known.", "Zařazeno k dalšímu procvičení.": "Added to the practice queue.",
+    "Pořadí kartiček zamícháno.": "Cards shuffled.", "Překlad je uložený.": "Translation saved.",
+    "Překlad uložen.": "Translation saved.", "Záloha pokroku byla připravena ke stažení.": "Progress backup is ready to download.",
+    "Slovo bylo vyřazeno z procvičování.": "Word excluded from learning.", "Slovo je zpět v učení.": "Word returned to learning.",
+    "Úroveň uložena.": "Level saved.", "Téma slovíčka uloženo.": "Word topic saved.", "Nic jsme nenašli.": "No words found.",
+    "Bez dat": "No data", "Kontexty nejsou k dispozici.": "No contexts are available.",
+    "Nejprve doplň nebo navrhni překlad.": "Add or suggest a translation first.", "Doplň překlad, nebo slovo přeskoč.": "Enter a translation or skip the word.",
+    "Překlad byl uložen.": "Translation saved.", "Návrh překladu byl zrušen.": "Translation suggestion cancelled.",
+    "Změny zrušeny; uložený překlad zůstal beze změny.": "Edits cancelled; the saved translation was left unchanged.",
+    "Návrh překladu se nepodařilo načíst.": "Could not load a translation suggestion.",
+    "Doplň další slova v kartě rychlých překladů; do hry se načtou až po uložení.": "Add more words in Quick translations; they will appear here after you save them.",
+    "Hra nabídne jen promíchané sloupce uložených slov a překladů. Správné dvojice se před volbou neukazují.": "The game shows shuffled columns of saved words and translations. Correct pairs stay hidden until you choose.",
+    "Zkus jiný hledaný výraz nebo filtr.": "Try a different search or filter.",
+    "Návrh překladu pošle pouze finské lemma": "The suggestion sends only the Finnish lemma",
+    "Věty ani databáze se neodesílají. Pokračovat?": "No sentences or database are sent. Continue?",
+    "Prohlížeč nemohl uložit změny. Exportuj si pokrok jako zálohu.": "The browser could not save your changes. Export your progress as a backup.",
+    "Soubor neobsahuje rozpoznatelná hesla. Očekávám vocabulary_db.json s denními položkami a polem vocabulary.": "The file contains no recognized entries. Expected vocabulary_db.json with daily entries and a vocabulary array.",
+    "Soubor se nepodařilo načíst.": "Could not load the file.", "Data se obnovila z tohoto prohlížeče. Přes import můžeš načíst novou verzi své denní databáze.": "Data were restored from this browser. Import a newer version of your daily database if needed.",
+    "Lemma nemůže být prázdné.": "Lemma cannot be empty.", "Nejdřív vlož API key.": "Enter an API key first.",
+    "Sanakirja API je v této kartě aktivní.": "Sanakirja API is active in this tab.",
+    "Orientační úroveň": "Approximate level", "úroveň": "level", "Nápověda překladu:": "Translation hint:",
+    "Nápověda tvaru:": "Form hint:", "Správný tvar:": "Expected form:", "Tvar ve větě": "Form in sentence",
+    "Importováno": "Imported", "Slovník načten.": "Dictionary loaded.", "Obnoven tvůj slovník.": "Your dictionary was restored.",
+    "Vlastní slovník je připraven": "Your dictionary is ready", "Načteno": "Loaded"
+  };
   const ACHIEVEMENTS = [
     { id: "first_day", title: "První krok", text: "Uč se jeden den.", check: () => Object.keys(studyDays).length >= 1 },
     { id: "streak_3", title: "Tři dny v řadě", text: "Udrž třídenní sérii.", check: () => currentStreak() >= 3 },
@@ -440,6 +584,8 @@
   let quickFillSuggestedFor = "";
   let quickFillDraftOriginal = "";
   let currentRawData = null;
+  let sanakirjaApiKey = "";
+  let quizTransitionTimer = null;
 
   function readStore(key, fallback) {
     try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
@@ -453,12 +599,132 @@
   function escapeHtml(value) {
     return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
   }
-  function number(value) { return new Intl.NumberFormat("cs-CZ").format(Number(value) || 0); }
-  function typeLabel(type) { return TYPE_LABELS[type] || (type ? String(type) : "Neurčeno"); }
+  function number(value) { return new Intl.NumberFormat(targetLanguage === "en" ? "en-US" : "cs-CZ").format(Number(value) || 0); }
+  function typeLabel(type) { return targetLanguage === "en" ? TYPE_LABELS_EN[type] || (type ? String(type) : "Unknown") : TYPE_LABELS[type] || (type ? String(type) : "Neurčeno"); }
+  function categoryLabel(category) { return targetLanguage === "en" ? CATEGORY_LABELS_EN[category] || "Uncategorized" : CATEGORIES[category] || "Bez tématu"; }
+  const UI_CS = Object.fromEntries(Object.entries(UI_EN).map(([czech, english]) => [english, czech]));
+  function localizedText(value) {
+    const trimmed = value.trim();
+    let replacement = targetLanguage === "en" ? UI_EN[trimmed] : UI_CS[trimmed];
+    if (!replacement && targetLanguage === "en") {
+      const levelMatch = trimmed.match(/^Úroveň: (všechny|nezařazená|A1|A2|B1|B2|C1|C2)$/);
+      if (levelMatch) replacement = "Level: " + ({ "všechny": "all", "nezařazená": "unassigned" }[levelMatch[1]] || levelMatch[1]);
+    }
+    if (!replacement && targetLanguage === "cs") {
+      const levelMatch = trimmed.match(/^Level: (all|unassigned|A1|A2|B1|B2|C1|C2)$/);
+      if (levelMatch) replacement = "Úroveň: " + ({ "all": "všechny", "unassigned": "nezařazená" }[levelMatch[1]] || levelMatch[1]);
+    }
+    if (!replacement && targetLanguage === "en") {
+      let match = trimmed.match(/^Zobrazeno (.+) z (.+) lemmat · (.+) aktivních · (.+) vyřazených\. Úrovně jsou orientační a lze je změnit\.$/);
+      if (match) replacement = "Showing " + match[1] + " of " + match[2] + " lemmas · " + match[3] + " active · " + match[4] + " excluded. Levels are approximate and editable.";
+      match = trimmed.match(/^Lekce (\d+) z (\d+) · (\d+) z (\d+) slov označeno jako známých\. Každá lekce má nejvýše 10 slov\.$/);
+      if (match) replacement = "Lesson " + match[1] + " of " + match[2] + " · " + match[3] + " of " + match[4] + " words marked known. Each lesson has up to 10 words.";
+      match = trimmed.match(/^Slovo (\d+) z (\d+)$/);
+      if (match) replacement = "Word " + match[1] + " of " + match[2];
+      match = trimmed.match(/^Pokusy: (\d+) · správné dvojice: (\d+)$/);
+      if (match) replacement = "Attempts: " + match[1] + " · correct pairs: " + match[2];
+      match = trimmed.match(/^(\d+) % slovní zásoby$/);
+      if (match) replacement = match[1] + "% of vocabulary";
+      match = trimmed.match(/^(\d+) \/ 5 překladů$/);
+      if (match) replacement = match[1] + " / 5 translations";
+      match = trimmed.match(/^Kolo · (\d+) z (\d+)$/);
+      if (match) replacement = "Round · " + match[1] + " of " + match[2];
+      match = trimmed.match(/^Kolo (\d+)$/);
+      if (match) replacement = "Round " + match[1];
+      match = trimmed.match(/^Lekce (\d+) · (\d+)–(\d+) \((\d+)\/(\d+)\)$/);
+      if (match) replacement = "Lesson " + match[1] + " · " + match[2] + "–" + match[3] + " (" + match[4] + "/" + match[5] + ")";
+      match = trimmed.match(/^Zatím máš (\d+) z 5 potřebných různých překladů$/);
+      if (match) replacement = "You have " + match[1] + " of 5 distinct translations needed";
+      match = trimmed.match(/^([\d,.]+) výskytů · ([\d,.]+) kontextů · (.+)$/);
+      if (match) replacement = match[1] + " occurrences · " + match[2] + " contexts · " + match[3].replace("úroveň ", "level ");
+      match = trimmed.match(/^(.+) · ([\d,.]+) výskytů · (.+)$/);
+      if (match) replacement = match[1] + " · " + match[2] + " occurrences · " + match[3].replace("bez úrovně", "no level").replace("bez tématu", "no topic");
+      match = trimmed.match(/^(\d+) kontextů$/);
+      if (match) replacement = match[1] + " contexts";
+      match = trimmed.match(/^(\d+) výskytů$/);
+      if (match) replacement = match[1] + " occurrences";
+      match = trimmed.match(/^(\d+) (den|dní)$/);
+      if (match) replacement = match[1] + (match[1] === "1" ? " day" : " days");
+      match = trimmed.match(/^(.+) % slovní zásoby$/);
+      if (match) replacement = match[1] + "% of vocabulary";
+      match = trimmed.match(/^Párování: (.+) správných dvojic v (.+) pokusech\. Série: (.+) dní\.$/);
+      if (match) replacement = "Matching: " + match[1] + " correct pairs in " + match[2] + " attempts. Streak: " + match[3] + " days.";
+      match = trimmed.match(/^Zobrazit kontexty \((\d+)\) ↓$/);
+      if (match) replacement = "Show contexts (" + match[1] + ") ↓";
+      match = trimmed.match(/^(.+) Získáno (.+)\.$/);
+      if (match) replacement = match[1] + " Earned " + match[2] + ".";
+      match = trimmed.match(/^Překlad pro „(.+)“ uložen\.$/);
+      if (match) replacement = "Translation for “" + match[1] + "” saved.";
+      match = trimmed.match(/^(Meaning saved\.|Význam uložen\.)(.*)$/);
+      if (match) {
+        const detail = match[2]
+          .replace(" Úroveň ze zdrojových dat nebo ruční volby zůstává zachována.", " Source data or manually set levels were preserved.")
+          .replace(/ Orientační odhad úrovně (A[12]|B[12]|C[12]) podle četnosti \((.+) výskytů\)\./, " Approximate level $1 by frequency ($2 occurrences).");
+        replacement = "Meaning saved." + detail;
+      }
+      match = trimmed.match(/^Význam pro „(.+)“ uložen\.(.*)$/);
+      if (match) {
+        const detail = match[2]
+          .replace(/ Orientační úroveň (A[12]|B[12]|C[12]) podle četnosti\./, " Approximate level $1 by frequency.")
+          .replace(" Úroveň ze zdrojových dat nebo ruční volby zůstává zachována.", " Source data or manually set levels were preserved.");
+        replacement = "Meaning for “" + match[1] + "” saved." + detail;
+      }
+      match = trimmed.match(/^Orientační odhad úrovně (A[12]|B[12]|C[12]) podle četnosti \((.+) výskytů\)\.$/);
+      if (match) replacement = "Approximate level " + match[1] + " by frequency (" + match[2] + " occurrences).";
+      match = trimmed.match(/^Slovník načten\. (.+) lemmat(?: · (.+) denních záznamů)?\.$/);
+      if (match) replacement = "Dictionary loaded. " + match[1] + " lemmas" + (match[2] ? " · " + match[2] + " daily records" : "") + ".";
+      match = trimmed.match(/^Načteno (.+) lemmat z (.+)\.$/);
+      if (match) replacement = "Loaded " + match[1] + " lemmas from " + match[2] + ".";
+      match = trimmed.match(/^Úroveň (.+) z (.+) · (.+) slov označeno jako známých\.$/);
+      if (match) replacement = "Level " + match[1] + " of " + match[2] + " · " + match[3] + " words marked known.";
+      match = trimmed.match(/^Napiš (English|český) překlad zpaměti$/);
+      if (match) replacement = "Type the " + (match[1] === "English" ? "English" : "Czech") + " translation from memory";
+      match = trimmed.match(/^Úroveň CEFR pro (.+)$/);
+      if (match) replacement = "CEFR level for " + match[1];
+      match = trimmed.match(/^Úroveň · (.+)$/);
+      if (match) replacement = "Level · " + match[1];
+      match = trimmed.match(/^Kontext · (.+)$/);
+      if (match) replacement = "Context · " + match[1];
+      match = trimmed.match(/^Výskyt (\d+)(?: · tvar: (.+))?(?: · pozice: (\d+))?(?: · (.+))?$/);
+      if (match) replacement = "Occurrence " + match[1] + (match[2] ? " · form: " + match[2] : "") + (match[3] ? " · position: " + match[3] : "") + (match[4] ? " · " + match[4] : "");
+      match = trimmed.match(/^(English meaning|Český význam) slova (.+)$/);
+      if (match) replacement = (match[1] === "English meaning" ? "English meaning" : "Czech meaning") + " for " + match[2];
+      match = trimmed.match(/^(.+) · (Vyřazeno|Umím|Procvičit|Nové)(?: · (.+))?$/);
+      if (match) {
+        const statuses = { "Vyřazeno": "Excluded", "Umím": "Known", "Procvičit": "Needs practice", "Nové": "New" };
+        replacement = match[1] + " · " + statuses[match[2]] + (match[3] ? " · " + (CATEGORY_LABELS_EN[Object.keys(CATEGORIES).find(key => CATEGORIES[key] === match[3])] || match[3]) : "");
+      }
+    }
+    if (!replacement) return value;
+    const leading = value.match(/^\s*/)?.[0] || "";
+    const trailing = value.match(/\s*$/)?.[0] || "";
+    return leading + replacement + trailing;
+  }
+  function localizeDom() {
+    document.documentElement.lang = targetLanguage === "en" ? "en" : "cs";
+    document.title = targetLanguage === "en" ? "Sanasto — Finnish vocabulary" : "Sanasto — finská slovní zásoba";
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      if (!node.parentElement || ["SCRIPT", "STYLE"].includes(node.parentElement.tagName)) continue;
+      const next = localizedText(node.nodeValue);
+      if (next !== node.nodeValue) node.nodeValue = next;
+    }
+    document.body.querySelectorAll("[placeholder],[aria-label],[title]").forEach(element => {
+      for (const attribute of ["placeholder", "aria-label", "title"]) {
+        if (element.hasAttribute(attribute)) {
+          const next = localizedText(element.getAttribute(attribute));
+          if (next !== element.getAttribute(attribute)) element.setAttribute(attribute, next);
+        }
+      }
+    });
+  }
+  const localeObserver = new MutationObserver(() => localizeDom());
+  localeObserver.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["placeholder", "aria-label", "title"] });
   function randomItem(items) { return items[Math.floor(Math.random() * items.length)]; }
   function shuffle(items) { const copy = [...items]; for (let i = copy.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [copy[i], copy[j]] = [copy[j], copy[i]]; } return copy; }
   function toast(message) {
-    const element = $("toast"); element.textContent = message; element.classList.add("show");
+    const element = $("toast"); element.textContent = localizedText(String(message)); element.classList.add("show");
     clearTimeout(toastTimer); toastTimer = setTimeout(() => element.classList.remove("show"), 2800);
   }
   function safeKey(value) { return String(value || "").trim().toLocaleLowerCase("fi-FI"); }
@@ -473,9 +739,9 @@
   }
   function termLevelSource(term) {
     const key = safeKey(term.lemma);
-    if (Object.prototype.hasOwnProperty.call(levelOverrides, key)) return levelOverrides[key] ? "ručně nastavená" : "ručně nezařazená";
-    if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(String(term.level || term.cefr || "").toUpperCase())) return "ze zdrojových dat";
-    return levelEstimates[key] ? "odhad podle četnosti" : "nezařazená";
+    if (Object.prototype.hasOwnProperty.call(levelOverrides, key)) return targetLanguage === "en" ? levelOverrides[key] ? "set manually" : "manually unassigned" : levelOverrides[key] ? "ručně nastavená" : "ručně nezařazená";
+    if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(String(term.level || term.cefr || "").toUpperCase())) return targetLanguage === "en" ? "from source data" : "ze zdrojových dat";
+    return levelEstimates[key] ? targetLanguage === "en" ? "estimated by frequency" : "odhad podle četnosti" : targetLanguage === "en" ? "unassigned" : "nezařazená";
   }
   function rebuildFrequencyEstimates() {
     const candidates = terms.filter(term => !Object.prototype.hasOwnProperty.call(levelOverrides, safeKey(term.lemma)) && !["A1", "A2", "B1", "B2", "C1", "C2"].includes(String(term.level || term.cefr || "").toUpperCase())).sort((a, b) => b.count - a.count || a.lemma.localeCompare(b.lemma, "fi"));
@@ -501,7 +767,10 @@
   }
   function termLevelNote(term) {
     const estimate = levelEstimates[safeKey(term.lemma)];
-    return estimate ? `Orientační úroveň podle relativní četnosti: ${estimate.level} (${number(estimate.count)} výskytů; přibližně ${estimate.percentile}. percentil ve tvém slovníku).` : "";
+    if (!estimate) return "";
+    return targetLanguage === "en"
+      ? "Approximate level by relative frequency: " + estimate.level + " (" + number(estimate.count) + " occurrences; around the " + estimate.percentile + "th percentile in your dictionary)."
+      : "Orientační úroveň podle relativní četnosti: " + estimate.level + " (" + number(estimate.count) + " výskytů; přibližně " + estimate.percentile + ". percentil ve tvém slovníku).";
   }
   function visibleTerm(term) { const level = $("levelMenu").dataset.value || "all"; return level === "all" || (level === "unassigned" ? !termLevel(term) : termLevel(term) === level); }
   function dailySeed(term) { const text = localDateKey() + ":" + term.lemma; let hash = 2166136261; for (const ch of text) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619); return hash >>> 0; }
@@ -517,6 +786,16 @@
     studyDays[localDateKey()] = true;
     writeStore(KEYS.studyDays, studyDays);
     updateAchievements();
+  }
+  function recordMatchingPractice(lemma) {
+    const key = safeKey(lemma);
+    if (ratings[key] !== "known") {
+      ratings[key] = "learning";
+      writeStore(KEYS.ratings, ratings);
+      reviewSchedule[key] = { stage: 0, due: localDateKey() };
+      writeStore(KEYS.schedule, reviewSchedule);
+    }
+    recordStudyDay();
   }
   function updateAchievements() {
     for (const achievement of ACHIEVEMENTS) {
@@ -543,32 +822,170 @@
   }
   function categoryFor(term) { return categoryAssignments[safeKey(term.lemma)] || suggestCategory(term); }
   function reviewDue(term) { const record = reviewSchedule[safeKey(term.lemma)]; return !record || !record.due || record.due <= localDateKey(); }
-  async function requestTranslation(term, signal) {
-    if (readStore(KEYS.translationConsent, "") !== "yes") {
-      const accepted = window.confirm("Návrh překladu pošle pouze finské lemma „" + term.lemma + "“ překladové službě MyMemory. Věty, databáze ani tvoje uložené překlady se neodesílají. Pokračovat?");
-      if (!accepted) return "";
-      writeStore(KEYS.translationConsent, "yes");
+  function comparisonText(value) {
+    return safeKey(value).normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\p{L}\p{N}\s]/gu, " ").replace(/\s+/g, " ").trim();
+  }
+  function editDistanceWithin(a, b, limit) {
+    if (Math.abs(a.length - b.length) > limit) return false;
+    let previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+    for (let i = 1; i <= a.length; i++) {
+      const current = [i]; let rowMin = i;
+      for (let j = 1; j <= b.length; j++) {
+        current[j] = Math.min(current[j - 1] + 1, previous[j] + 1, previous[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        rowMin = Math.min(rowMin, current[j]);
+      }
+      if (rowMin > limit) return false;
+      previous = current;
     }
+    return previous[b.length] <= limit;
+  }
+  function answerMatches(answer, expected, splitAlternatives = true) {
+    const given = comparisonText(answer);
+    if (!given) return false;
+    const variants = splitAlternatives ? String(expected || "").split(/[,;|/]|(?:\s+(?:or|nebo|and|a)\s+)/i) : [String(expected || "")];
+    return variants.map(comparisonText).filter(Boolean).some(candidate => {
+      if (given === candidate) return true;
+      const allowance = candidate.length >= 10 ? 2 : candidate.length >= 5 ? 1 : 0;
+      return allowance > 0 && editDistanceWithin(given, candidate, allowance);
+    });
+  }
+  function grammaticalHint(term, form) {
+    const word = safeKey(form);
+    const lemma = safeKey(term.lemma);
+    const type = String(term.type || "").toLowerCase();
+    const verb = ["verb", "teonsana"].includes(type);
+    if (word === lemma) return targetLanguage === "en" ? "Dictionary form; for a noun, this is usually the nominative singular." : "Základní tvar; u podstatného jména obvykle nominativ jednotného čísla.";
+    if (verb) {
+      const endings = [
+        [["vat", "vät"], "3rd person plural"],
+        [["mme"], "1st person plural"], [["tte"], "2nd person plural"],
+        [["isi"], "conditional mood"], [["nut", "nyt"], "past participle"],
+        [["n"], "1st person singular"], [["t"], "2nd person singular"]
+      ];
+      for (const [suffixes, label] of endings) {
+        if (suffixes.some(suffix => word.endsWith(suffix))) return targetLanguage === "en" ? "Likely verb form: " + label + "." : "Odhadem slovesný tvar: " + ({ "3rd person plural": "3. osoba množného čísla", "1st person plural": "1. osoba množného čísla", "2nd person plural": "2. osoba množného čísla", "conditional mood": "kondicionál", "past participle": "minulé příčestí", "1st person singular": "1. osoba jednotného čísla", "2nd person singular": "2. osoba jednotného čísla" }[label] || label) + ".";
+      }
+      return targetLanguage === "en" ? "Use the verb form required by the sentence." : "Použij slovesný tvar, který vyžaduje věta.";
+    }
+    const cases = [
+      [["ssa", "ssä"], "inessive", "inessiv (kde?)"],
+      [["sta", "stä"], "elative", "elativ (odkud? z)"],
+      [["lla", "llä"], "adessive", "adessiv (kde? na/u)"],
+      [["lta", "ltä"], "ablative", "ablativ (odkud? od)"],
+      [["lle"], "allative", "allativ (kam? na/k)"],
+      [["na", "nä"], "essive", "essiv (jako/kým)"],
+      [["ksi"], "translative", "translativ (v/co se mění)"],
+      [["tta", "ttä"], "abessive", "abessiv (bez čeho)"],
+      [["n"], "genitive", "genitiv (koho/čeho)"],
+      [["a", "ä"], "partitive", "partitiv (koho/co, částečný předmět)"]
+    ];
+    for (const [suffixes, english, czech] of cases) {
+      if (suffixes.some(suffix => word.endsWith(suffix))) return targetLanguage === "en" ? "Likely singular " + english + " (" + suffixes.map(value => "-" + value).join("/") + ")." : "Pravděpodobně " + czech + " (" + suffixes.map(value => "-" + value).join("/") + ").";
+    }
+    return targetLanguage === "en" ? "Use the inflected form required by the sentence; the hint is approximate." : "Použij ohýbaný tvar, který vyžaduje věta; nápověda je orientační.";
+  }
+  function contextExercise(term, context) {
+    if (!context) return null;
+    const sentence = String(context.short_sentence || context.sentence || "");
+    if (!sentence) return null;
+    const candidates = [context.word, ...Object.keys(term.word_forms || {}).sort((a, b) => b.length - a.length), term.lemma]
+      .map(value => String(value || "").trim()).filter((value, index, list) => value && list.findIndex(item => safeKey(item) === safeKey(value)) === index);
+    for (const candidate of candidates) {
+      let match;
+      try {
+        const escapedCandidate = candidate.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+        match = new RegExp("(^|[^\\p{L}\\p{M}])(" + escapedCandidate + ")(?=$|[^\\p{L}\\p{M}])", "iu").exec(sentence);
+      } catch (_) { continue; }
+      if (!match) continue;
+      const start = match.index + match[1].length;
+      const form = match[2];
+      return { sentence, before: sentence.slice(0, start), form, after: sentence.slice(start + form.length), hint: grammaticalHint(term, form) };
+    }
+    return null;
+  }
+  function contextExerciseFor(term, startAt = 0) {
+    for (let offset = 0; offset < term.contexts.length; offset++) {
+      const context = term.contexts[(startAt + offset) % term.contexts.length];
+      const exercise = contextExercise(term, context);
+      if (exercise) return { ...exercise, context };
+    }
+    return null;
+  }
+  function translationsFromSanakirja(data, lemma) {
+    const found = [];
+    const visit = (value, key = "", underTranslation = false) => {
+      if (typeof value === "string") {
+        const translationField = /(translation|equivalent|gloss|meaning|definition)/i.test(key) || /^(target|target_word|target_text|text)$/i.test(key);
+        if ((underTranslation || translationField) && !/(language|code|id|part.of.speech|pos)/i.test(key)) {
+          const text = value.trim();
+          if (text && safeKey(text) !== safeKey(lemma) && !found.includes(text)) found.push(text);
+        }
+        return;
+      }
+      if (Array.isArray(value)) { value.forEach(item => visit(item, key, underTranslation)); return; }
+      if (value && typeof value === "object") Object.entries(value).forEach(([childKey, child]) => visit(child, childKey, underTranslation || /(translation|equivalent|gloss|meaning|definition)/i.test(childKey)));
+    };
+    visit(data);
+    return found.slice(0, 6);
+  }
+  async function requestSanakirjaTranslation(term, signal) {
+    if (!sanakirjaApiKey || targetLanguage !== "en") return "";
+    const url = new URL("https://apiv2.sanakirja.fi/api/v1/search");
+    url.searchParams.set("keyword", term.lemma);
+    url.searchParams.set("keyword_language", "fi");
+    url.searchParams.set("target_language", "en");
+    const response = await fetch(url.toString(), { headers: { Accept: "application/json", key: sanakirjaApiKey }, signal });
+    if (!response.ok) throw new Error("Sanakirja API returned " + response.status + ".");
+    return translationsFromSanakirja(await response.json(), term.lemma).join(", ");
+  }
+  async function requestMyMemoryTranslation(term, signal) {
     const url = new URL("https://api.mymemory.translated.net/get");
     url.searchParams.set("q", term.lemma);
     url.searchParams.set("langpair", "fi|" + targetLanguage);
     const response = await fetch(url.toString(), { headers: { Accept: "application/json" }, signal });
-    if (!response.ok) throw new Error("Překladová služba odpověděla chybou " + response.status + ".");
+    if (!response.ok) throw new Error("MyMemory returned " + response.status + ".");
     const data = await response.json();
     const matches = Array.isArray(data.matches) ? [...data.matches].sort((a, b) => (Number(b.match) || 0) - (Number(a.match) || 0)) : [];
     const suggestion = String(matches.find(item => item.translation && item.translation.trim())?.translation || data.responseData?.translatedText || "").trim();
-    if (!suggestion || suggestion.toLocaleLowerCase() === term.lemma.toLocaleLowerCase()) throw new Error("Pro toto slovo se nepodařilo najít návrh překladu.");
+    if (!suggestion || safeKey(suggestion) === safeKey(term.lemma)) throw new Error("MyMemory found no translation.");
     return suggestion;
+  }
+  async function requestTranslation(term, signal) {
+    const sourceNames = sanakirjaApiKey && targetLanguage === "en" ? "MyMemory and the Sanakirja.fi API" : "MyMemory";
+    const consentKey = KEYS.translationConsent + "_" + targetLanguage + "_" + (sanakirjaApiKey && targetLanguage === "en" ? "both" : "mymemory");
+    if (readStore(consentKey, "") !== "yes") {
+      const accepted = window.confirm((targetLanguage === "en" ? "The Finnish lemma “" + term.lemma + "” will be sent to " + sourceNames + ". " : "Finské lemma „" + term.lemma + "“ se odešle službě MyMemory. ") + (targetLanguage === "en" ? "No sentences or database are sent. Continue?" : "Věty ani databáze se neodesílají. Pokračovat?"));
+      if (!accepted) return { suggestion: "", sources: [] };
+      writeStore(consentKey, "yes");
+    }
+    const tasks = [requestMyMemoryTranslation(term, signal).then(value => ({ source: "MyMemory", value }))];
+    if (sanakirjaApiKey && targetLanguage === "en") tasks.push(requestSanakirjaTranslation(term, signal).then(value => ({ source: "Sanakirja.fi", value })));
+    const settled = await Promise.allSettled(tasks);
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+    const results = settled.filter(item => item.status === "fulfilled" && item.value.value);
+    const unique = [];
+    const sources = [];
+    for (const item of results) {
+      sources.push(item.value.source);
+      for (const translation of item.value.value.split(/[;,|]/).map(value => value.trim()).filter(Boolean)) {
+        if (!unique.some(value => safeKey(value) === safeKey(translation))) unique.push(translation);
+      }
+    }
+    if (!unique.length) {
+      const failure = settled.find(item => item.status === "rejected");
+      throw failure?.reason || new Error(targetLanguage === "en" ? "No translation suggestion was found." : "Pro toto slovo se nepodařilo najít návrh překladu.");
+    }
+    return { suggestion: unique.join(", "), sources };
   }
   async function suggestTranslation(term, input, button) {
     const oldText = button.textContent;
     button.disabled = true; button.setAttribute("aria-busy", "true"); button.textContent = "Navrhuji překlad…";
     try {
-      const suggestion = await requestTranslation(term);
-      if (!suggestion) { toast("Návrh překladu byl zrušen."); return; }
-      input.value = suggestion;
+      const result = await requestTranslation(term);
+      if (!result.suggestion) { toast(targetLanguage === "en" ? "Translation suggestion cancelled." : "Návrh překladu byl zrušen."); return; }
+      input.value = result.suggestion;
       input.focus();
-      toast(targetLanguage === "en" ? "Suggestion ready. Review it and press Enter to accept." : "Návrh je připraven. Zkontroluj ho a potvrď Enterem.");
+      toast(targetLanguage === "en" ? "Suggestion ready from " + result.sources.join(" + ") + ". Review it and press Enter to accept." : "Návrh je připraven. Zkontroluj ho a potvrď Enterem.");
     } catch (error) {
       toast(error.message || "Návrh překladu se nepodařilo načíst.");
     } finally { button.disabled = false; button.removeAttribute("aria-busy"); button.textContent = oldText; }
@@ -747,6 +1164,16 @@
       renderQueue(); return;
     }
     const rating = ratings[safeKey(term.lemma)];
+    const modeSelect = $("cardMode");
+    const typingOption = modeSelect.querySelector('option[value="typing"]');
+    const contextOption = modeSelect.querySelector('option[value="context"]');
+    const exercise = contextExerciseFor(term, cardIndex % Math.max(1, term.contexts.length));
+    typingOption.hidden = !meaningFor(term.lemma);
+    contextOption.hidden = !meaningFor(term.lemma) || !exercise;
+    if ((cardMode === "typing" && !meaningFor(term.lemma)) || (cardMode === "context" && (!meaningFor(term.lemma) || !exercise))) {
+      cardMode = "cards"; writeStore(KEYS.cardMode, cardMode);
+    }
+    modeSelect.value = cardMode;
     $("cardStatus").textContent = rating === "known" ? "Už umím" : rating === "learning" ? "Procvičit znovu" : "Nové slovo";
     const context = term.contexts.length ? term.contexts[cardIndex % term.contexts.length] : null;
     const contextHtml = context ? `<div class="context-quote"><span class="quote-label">${demoMode && context.date === "ukázka" ? "Ilustrační věta" : `Kontext${context.date ? " · " + escapeHtml(context.date) : ""}`}</span><p>${escapeHtml(context.short_sentence || context.sentence)}</p>${context.full_context && context.full_context !== (context.short_sentence || context.sentence) ? `<button type="button" class="subtle-button" id="expandCardContextBtn">Zobrazit širší kontext ↓</button><p id="cardFullContext" hidden>${escapeHtml(context.full_context)}</p>` : ""}${context.word ? `<div class="context-date">Tvar ve větě: <strong>${escapeHtml(context.word)}</strong></div>` : ""}</div>` : `<div class="context-quote"><span class="quote-label">Kontext</span><p>Pro toto slovo není v načteném JSON kontextová věta.</p></div>`;
@@ -756,16 +1183,27 @@
       if (cardResult !== null) content += `<div class="quiz-feedback"><strong>${cardResult ? "Správně!" : "Ještě ne."}</strong> ${cardResult ? "Dobrá práce." : "Správný překlad můžeš zkontrolovat níže."}</div>`;
       content += `<div class="answer-area"><label class="form-label" for="cardMeaningInput">${targetLanguage === "en" ? "English meaning / note" : "Český význam / vlastní poznámka"}</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="cardMeaningInput" class="text-input" maxlength="500" placeholder="${targetLanguage === "en" ? "Add an English meaning…" : "Např. být, existovat…"}" value="${escapeHtml(meaningFor(term.lemma))}"><button class="button" id="suggestCardBtn" type="button">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button class="button soft" id="saveCardMeaningBtn" type="button">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="section-subtitle">${!meaningFor(term.lemma) ? "Při odhalení se pokusím připravit návrh překladu; zkontroluj ho a ulož. " : "Význam je uložený. "}${termLevelNote(term) || `Úroveň ${termLevel(term) || "se odhaduje podle četnosti"}; v případě potřeby ji můžeš změnit ručně.`} Enter překlad uloží.</div><div class="word-row-foot" style="justify-content:center">${Object.entries(term.word_forms || {}).slice(0, 6).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("")}</div></div>`;
     }
+    if (cardMode === "context" && exercise) {
+      content = '<span class="type-chip">' + escapeHtml(typeLabel(term.type)) + '</span><div class="context-exercise"><p>' + escapeHtml(exercise.before) + '<span class="context-blank">_____</span>' + escapeHtml(exercise.after) + '</p><div class="context-hints"><div><strong>' + (targetLanguage === "en" ? "Translation hint:" : "Nápověda překladu:") + '</strong> ' + escapeHtml(meaningFor(term.lemma)) + '</div><div><strong>' + (targetLanguage === "en" ? "Form hint:" : "Nápověda tvaru:") + '</strong> ' + escapeHtml(exercise.hint) + '</div></div>';
+      if (!cardRevealed) content += '<div class="answer-area"><label class="form-label" for="cardGuessInput">' + (targetLanguage === "en" ? "Type the Finnish form used in the sentence" : "Napiš finský tvar použitý ve větě") + '</label><input id="cardGuessInput" class="text-input" autocomplete="off" placeholder="' + (targetLanguage === "en" ? "Your answer…" : "Tvá odpověď…") + '"></div>';
+      else content += '<div class="quiz-feedback"><strong>' + (cardResult ? (targetLanguage === "en" ? "Correct!" : "Správně!") : (targetLanguage === "en" ? "Try again next time." : "Příště to zkus znovu.")) + '</strong> ' + (targetLanguage === "en" ? "Expected form:" : "Správný tvar:") + ' <strong>' + escapeHtml(exercise.form) + '</strong></div>';
+      content += '</div>';
+    }
     $("cardContent").innerHTML = content;
     if (!cardRevealed) {
       actions.innerHTML = `${cardMode === "typing" ? `<button class="button primary" id="checkCardGuessBtn" type="button">Zkontrolovat</button>` : ""}<button class="button primary" id="revealCardBtn" type="button">Ukázat odpověď</button><button class="button" id="skipCardBtn" type="button">Přeskočit →</button>`;
+      if (cardMode === "context") actions.innerHTML = '<button class="button primary" id="checkCardGuessBtn" type="button">' + (targetLanguage === "en" ? "Check answer" : "Zkontrolovat") + '</button><button class="button" id="revealCardBtn" type="button">' + (targetLanguage === "en" ? "Show answer" : "Ukázat odpověď") + '</button><button class="button" id="skipCardBtn" type="button">' + (targetLanguage === "en" ? "Skip →" : "Přeskočit →") + '</button>';
       $("revealCardBtn").addEventListener("click", () => { cardRevealed = true; cardResult = null; recordStudyDay(); renderCards(); if (!meaningFor(term.lemma)) suggestTranslation(term, $("cardMeaningInput"), $("suggestCardBtn")); });
       const checkGuess = () => {
+        if (cardMode === "context") {
+          const exercise = contextExerciseFor(term, cardIndex % Math.max(1, term.contexts.length));
+          const value = $("cardGuessInput").value.trim();
+          if (!value || !exercise) { toast(targetLanguage === "en" ? "Type a form first." : "Nejdřív napiš tvar."); return; }
+          cardResult = answerMatches(value, exercise.form, false); cardRevealed = true; recordStudyDay(); renderCards(); return;
+        }
         const expected = meaningFor(term.lemma);
         if (!expected) { toast("Nejdřív přidej nebo navrhni překlad a ulož ho."); return; }
-        const normalizeAnswer = value => safeKey(value).replace(/[.!?;:]/g, "").replace(/\s+/g, " ").trim();
-        const answers = expected.split(/[;,|]/).map(normalizeAnswer).filter(Boolean);
-        cardResult = answers.includes(normalizeAnswer($("cardGuessInput").value)); cardRevealed = true; recordStudyDay(); renderCards();
+        cardResult = answerMatches($("cardGuessInput").value, expected); cardRevealed = true; recordStudyDay(); renderCards();
       };
       const checkButton = $("checkCardGuessBtn"); if (checkButton) checkButton.addEventListener("click", checkGuess);
       const guessInput = $("cardGuessInput"); if (guessInput) guessInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); checkGuess(); } });
@@ -814,6 +1252,7 @@
   function nextCard() { const deck = filteredDeck(); if (!deck.length) return; cardIndex = (cardIndex + 1) % deck.length; cardRevealed = false; cardResult = null; renderCards(); }
 
   function startMatchingGame(pairs) {
+    if (quizTransitionTimer) { clearTimeout(quizTransitionTimer); quizTransitionTimer = null; }
     const unique = [];
     const meaningsSeen = new Set();
     for (const pair of shuffle(pairs)) {
@@ -828,6 +1267,7 @@
     renderQuiz();
   }
   function createQuizQuestion() {
+    if (quizTransitionTimer) { clearTimeout(quizTransitionTimer); quizTransitionTimer = null; }
     const available = activeTerms().filter(term => meaningFor(term.lemma)).map(term => ({ lemma: term.lemma, meaning: meaningFor(term.lemma) }));
     const unique = [];
     const seen = new Set();
@@ -873,6 +1313,14 @@
     if (complete) {
       feedback.hidden = false; feedback.innerHTML = "<strong>Výborně!</strong> Všech pět dvojic je správně.";
       $("nextQuizBtn").hidden = false;
+      if (!quizQuestion.autoNextScheduled) {
+        quizQuestion.autoNextScheduled = true;
+        const completedQuestion = quizQuestion;
+        quizTransitionTimer = setTimeout(() => {
+          quizTransitionTimer = null;
+          if (quizQuestion === completedQuestion) createQuizQuestion();
+        }, 2000);
+      }
     }
     $("quizScore").textContent = `Pokusy: ${quizStats.total} · správné dvojice: ${quizStats.correct}`;
   }
@@ -896,6 +1344,7 @@
     const pair = game.pairs.find(item => safeKey(item.lemma) === safeKey(game.selectedFinnish));
     if (pair && safeKey(pair.lemma) === safeKey(game.selectedTranslation)) {
       game.matched.push(pair.lemma); quizStats.correct += 1; game.wrong = null;
+      recordMatchingPractice(pair.lemma);
     } else {
       game.wrong = { fi: game.selectedFinnish, translation: game.selectedTranslation };
     }
@@ -905,6 +1354,7 @@
     }
     writeStore(KEYS.quiz, quizStats);
     renderQuiz();
+    renderStats(); renderOverview();
     if (game.wrong) setTimeout(() => { if (quizQuestion === game) { game.wrong = null; renderQuiz(); } }, 550);
   }
 
@@ -919,24 +1369,25 @@
     const input = $("quickFillInput");
     if (!term) {
       $("quickFillProgress").textContent = "Hotovo";
-      $("quickFillLemma").textContent = "Všechna aktivní slova už mají překlad.";
-      $("quickFillMeta").textContent = "Pokud chceš upravit již uložené překlady, zapni volbu níže.";
+      $("quickFillLemma").textContent = targetLanguage === "en" ? "All active words already have a translation." : "Všechna aktivní slova už mají překlad.";
+      $("quickFillMeta").textContent = targetLanguage === "en" ? "To edit saved translations, enable the option below." : "Pokud chceš upravit již uložené překlady, zapni volbu níže.";
       input.value = ""; input.disabled = true;
-      $("suggestQuickFillBtn").disabled = true; $("saveQuickFillBtn").disabled = true; $("skipQuickFillBtn").disabled = true; $("cancelQuickFillBtn").disabled = true;
+      $("suggestQuickFillBtn").disabled = true; $("saveQuickFillBtn").disabled = true; $("skipQuickFillBtn").disabled = true; $("cancelQuickFillBtn").disabled = true; $("excludeQuickFillBtn").disabled = true;
       $("quickFillStatus").textContent = "";
       return;
     }
     input.disabled = false;
-    $("suggestQuickFillBtn").disabled = false; $("saveQuickFillBtn").disabled = false; $("skipQuickFillBtn").disabled = false; $("cancelQuickFillBtn").disabled = false;
+    $("suggestQuickFillBtn").disabled = false; $("saveQuickFillBtn").disabled = false; $("skipQuickFillBtn").disabled = false; $("cancelQuickFillBtn").disabled = false; $("excludeQuickFillBtn").disabled = false;
     $("quickFillProgress").textContent = `Slovo ${quickFillIndex + 1} z ${list.length}`;
     $("quickFillLemma").textContent = term.lemma;
     $("quickFillMeta").textContent = `${typeLabel(term.type)} · ${number(term.count)} výskytů · ${termLevel(term) || "bez úrovně"}${categoryFor(term) ? ` · ${CATEGORIES[categoryFor(term)]}` : ""}`;
     $("quickFillLabel").textContent = targetLanguage === "en" ? "English translation" : "Český překlad";
+    $("quickFillMeta").textContent = typeLabel(term.type) + " · " + number(term.count) + (targetLanguage === "en" ? " occurrences" : " výskytů") + " · " + (termLevel(term) || (targetLanguage === "en" ? "no level" : "bez úrovně")) + (categoryFor(term) ? " · " + categoryLabel(categoryFor(term)) : "");
     input.placeholder = targetLanguage === "en" ? "Suggested translation…" : "Navrhovaný překlad…";
     const saved = meaningFor(term.lemma);
     input.value = saved;
     quickFillDraftOriginal = saved;
-    $("quickFillStatus").textContent = saved ? "Uložený překlad můžeš upravit. Escape vrátí původní hodnotu." : "Připravuji návrh pro toto jedno slovo…";
+    $("quickFillStatus").textContent = saved ? (targetLanguage === "en" ? "Edit the saved translation, or press Escape to exclude this word from learning." : "Uložený překlad můžeš upravit. Escape slovo vyřadí z učení.") : (targetLanguage === "en" ? "Preparing a suggestion for this word…" : "Připravuji návrh pro toto jedno slovo…");
     if (activeTab === "quickfill" && !saved && quickFillSuggestedFor !== safeKey(term.lemma)) requestQuickFillSuggestion(term);
   }
   async function requestQuickFillSuggestion(term) {
@@ -948,13 +1399,13 @@
     const generation = ++quickFillGeneration;
     const button = $("suggestQuickFillBtn");
     button.disabled = true; button.setAttribute("aria-busy", "true");
-    $("quickFillStatus").textContent = "Načítám návrh překladu…";
+    $("quickFillStatus").textContent = targetLanguage === "en" ? "Loading translation suggestions…" : "Načítám návrh překladu…";
     try {
-      const suggestion = await requestTranslation(term, controller.signal);
+      const result = await requestTranslation(term, controller.signal);
       if (generation !== quickFillGeneration || controller.signal.aborted) return;
-      if (!suggestion) { $("quickFillStatus").textContent = "Návrh byl zrušen."; return; }
-      $("quickFillInput").value = suggestion;
-      $("quickFillStatus").textContent = "Návrh je připraven. Zkontroluj ho a potvrď Enterem; můžeš ho také upravit.";
+      if (!result.suggestion) { $("quickFillStatus").textContent = targetLanguage === "en" ? "Suggestion cancelled." : "Návrh byl zrušen."; return; }
+      $("quickFillInput").value = result.suggestion;
+      $("quickFillStatus").textContent = targetLanguage === "en" ? "Suggestion from " + result.sources.join(" + ") + ". Review it, edit if needed, and press Enter." : "Návrh z " + result.sources.join(" + ") + " je připraven. Zkontroluj ho a potvrď Enterem; můžeš ho také upravit.";
       $("quickFillInput").focus();
     } catch (error) {
       if (error.name !== "AbortError" && generation === quickFillGeneration) $("quickFillStatus").textContent = error.message || "Překlad se nepodařilo navrhnout.";
@@ -972,9 +1423,20 @@
     const term = quickFillTerms()[quickFillIndex];
     quickFillSuggestedFor = term ? safeKey(term.lemma) : "";
     $("quickFillInput").value = quickFillDraftOriginal;
-    $("quickFillStatus").textContent = "Změny zrušeny; uložený překlad zůstal beze změny.";
+    $("quickFillStatus").textContent = targetLanguage === "en" ? "Edits cancelled; the saved translation was left unchanged." : "Změny zrušeny; uložený překlad zůstal beze změny.";
     $("suggestQuickFillBtn").disabled = false; $("suggestQuickFillBtn").removeAttribute("aria-busy");
-    toast("Návrh nebo úprava zrušeny.");
+    toast(targetLanguage === "en" ? "Suggestion or edit cancelled." : "Návrh nebo úprava zrušeny.");
+  }
+  function excludeQuickFill() {
+    const term = quickFillTerms()[quickFillIndex];
+    if (!term) return;
+    if (quickFillController) quickFillController.abort();
+    quickFillGeneration++; quickFillController = null; quickFillSuggestedFor = "";
+    hiddenTerms[safeKey(term.lemma)] = true;
+    writeStore(KEYS.hidden, hiddenTerms);
+    if (quickFillIndex >= quickFillTerms().length) quickFillIndex = 0;
+    renderAll();
+    toast(targetLanguage === "en" ? "“" + term.lemma + "” was excluded from learning." : "„" + term.lemma + "“ bylo vyřazeno z učení.");
   }
   function skipQuickFill() {
     if (quickFillController) quickFillController.abort();
@@ -1011,6 +1473,10 @@
     categorySelect.innerHTML = `<option value="all">Všechna témata</option><option value="unassigned">Bez tématu</option>` + Object.entries(CATEGORIES).map(([key, label]) => `<option value="${key}">${escapeHtml(label)}</option>`).join("");
     categorySelect.value = currentCategory === "all" || currentCategory === "unassigned" || Object.prototype.hasOwnProperty.call(CATEGORIES, currentCategory) ? currentCategory : "all";
   }
+  function dictionaryFrequencyThreshold() {
+    const totalOccurrences = terms.reduce((sum, term) => sum + (Number(term.count) || 0), 0);
+    return Math.max(1, Math.ceil(totalOccurrences * 0.001));
+  }
   function dictionaryFiltered() {
     const query = safeKey($("dictionarySearch").value);
     const type = $("typeFilter").value;
@@ -1018,7 +1484,9 @@
     const category = $("categoryFilter").value;
     const visibility = $("visibilityFilter").value;
     const sort = $("sortFilter").value;
+    const minimumFrequency = dictionaryFrequencyThreshold();
     let list = terms.filter(term => {
+      if (Number(term.count) < minimumFrequency) return false;
       if (visibility === "active" && isHidden(term)) return false;
       if (visibility === "excluded" && !isHidden(term)) return false;
       if (type !== "all" && term.type !== type) return false;
@@ -1026,7 +1494,7 @@
       const wordCategory = categoryFor(term);
       if (category === "unassigned" ? !!wordCategory : category !== "all" && wordCategory !== category) return false;
       const meaning = meaningFor(term.lemma);
-      const searchSpace = [term.lemma, ...Object.keys(term.word_forms || {}), meaning, CATEGORIES[wordCategory] || ""].join(" ").toLocaleLowerCase("fi-FI");
+      const searchSpace = [term.lemma, ...Object.keys(term.word_forms || {}), meaning, CATEGORIES[wordCategory] || "", CATEGORY_LABELS_EN[wordCategory] || ""].join(" ").toLocaleLowerCase("fi-FI");
       return !query || searchSpace.includes(query);
     });
     if (sort === "alpha") list.sort((a, b) => a.lemma.localeCompare(b.lemma, "fi"));
@@ -1069,6 +1537,8 @@
   }
   function renderDictionary() {
     const list = dictionaryFiltered();
+    const minimumFrequency = dictionaryFrequencyThreshold();
+    $("dictionaryFrequencyNote").textContent = targetLanguage === "en" ? "Minimum frequency: " + number(minimumFrequency) + " occurrences (0.1% of total database frequency)." : "Minimální četnost: " + number(minimumFrequency) + " výskytů (0,1 % celkové četnosti databáze).";
     $("dictionarySummary").textContent = `Zobrazeno ${number(list.length)} z ${number(terms.length)} lemmat · ${number(activeTerms().length)} aktivních · ${number(terms.length - activeTerms().length)} vyřazených. Úrovně jsou orientační a lze je změnit.`;
     if (!list.length) { $("wordList").innerHTML = `<div class="empty-state"><strong>Nic jsme nenašli.</strong>Zkus jiný hledaný výraz nebo filtr.</div>`; return; }
     $("wordList").innerHTML = list.map(term => {
@@ -1120,6 +1590,7 @@
   }
   function renderAll() {
     renderLessonSelect(); renderTypeOptions(); renderStats(); renderCards(); renderDictionary(); renderQuickFill(); renderOverview(); renderQuiz();
+    localizeDom();
   }
   function activateTab(tab) {
     activeTab = tab;
@@ -1197,7 +1668,11 @@
     $("languageMenuLabel").textContent = targetLanguage === "en" ? "Translation: English" : "Překlad: čeština";
     $("languageMenu").querySelectorAll("[data-language]").forEach(item => item.setAttribute("aria-checked", String(item === button)));
     $("languageMenu").open = false;
-    quizQuestion = null; quickFillSuggestedFor = ""; renderAll();
+    quizQuestion = null; quickFillSuggestedFor = "";
+    $("sanakirjaKeyStatus").textContent = sanakirjaApiKey
+      ? (targetLanguage === "en" ? "API key is active in this tab. English translation suggestions will query both sources." : "API key je aktivní v této kartě. Anglické návrhy se budou hledat v obou zdrojích.")
+      : (targetLanguage === "en" ? "No key set; using MyMemory." : "Klíč není nastaven; používá se MyMemory.");
+    renderAll();
   }));
   $("languageMenuLabel").textContent = targetLanguage === "en" ? "Translation: English" : "Překlad: čeština";
   $("languageMenu").querySelectorAll("[data-language]").forEach(button => button.setAttribute("aria-checked", String(button.dataset.language === targetLanguage)));
@@ -1215,13 +1690,27 @@
   $("sortFilter").addEventListener("change", renderDictionary);
   $("nextQuizBtn").addEventListener("click", createQuizQuestion);
   $("includeTranslatedToggle").addEventListener("change", () => { if (quickFillController) quickFillController.abort(); quickFillGeneration++; quickFillController = null; quickFillSuggestedFor = ""; quickFillIndex = 0; renderQuickFill(); });
+  $("saveSanakirjaKeyBtn").addEventListener("click", () => {
+    const value = $("sanakirjaApiKey").value.trim();
+    if (!value) { $("sanakirjaKeyStatus").textContent = targetLanguage === "en" ? "Enter your API key first." : "Nejdřív vlož API key."; return; }
+    sanakirjaApiKey = value;
+    $("sanakirjaKeyStatus").textContent = targetLanguage === "en" ? "API key is active in this tab. English translation suggestions will query both sources." : "API key je aktivní v této kartě. Anglické návrhy se budou hledat v obou zdrojích.";
+    toast(targetLanguage === "en" ? "Sanakirja API enabled for this tab." : "Sanakirja API je v této kartě aktivní.");
+  });
+  $("clearSanakirjaKeyBtn").addEventListener("click", () => {
+    sanakirjaApiKey = ""; $("sanakirjaApiKey").value = "";
+    $("sanakirjaKeyStatus").textContent = targetLanguage === "en" ? "API key cleared; using MyMemory." : "Klíč vymazán; používá se MyMemory.";
+  });
   $("suggestQuickFillBtn").addEventListener("click", () => { const term = quickFillTerms()[quickFillIndex]; if (term) { quickFillSuggestedFor = ""; requestQuickFillSuggestion(term); } });
   $("saveQuickFillBtn").addEventListener("click", saveQuickFill);
   $("skipQuickFillBtn").addEventListener("click", skipQuickFill);
   $("cancelQuickFillBtn").addEventListener("click", cancelQuickFill);
+  $("excludeQuickFillBtn").addEventListener("click", excludeQuickFill);
   $("quickFillInput").addEventListener("keydown", event => {
     if (event.key === "Enter") { event.preventDefault(); saveQuickFill(); }
-    if (event.key === "Escape") { event.preventDefault(); cancelQuickFill(); }
+  });
+  document.addEventListener("keydown", event => {
+    if (activeTab === "quickfill" && event.key === "Escape") { event.preventDefault(); excludeQuickFill(); }
   });
   $("queueList").addEventListener("click", event => {
     const button = event.target.closest("[data-jump-lemma]"); if (!button) return;
