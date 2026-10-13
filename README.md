@@ -12,14 +12,14 @@ Statická webová aplikace pro procvičování finské slovní zásoby z databá
 - Volba jazyka překladů (čeština nebo angličtina); při volbě angličtiny se přepne celé rozhraní
 - Návrh překladu jednotlivého slova přes MyMemory; při překladu se ukazují také kontexty z databáze
 - Samostatná karta pro rychlé doplňování překladů: návrh vždy pro jedno slovo, Enter překlad uloží, Escape slovo vyřadí z učení a uložený překlad lze upravit
-- Samostatné procvičování: kartičky, napsání překladu, doplnění finského tvaru do kontextu a výběr překladu ze čtyř možností
-- Kontextová nápověda ukáže překlad a přibližný gramatický tvar; kontrola přijímá běžné varianty i drobný překlep
+- Samostatné procvičování: kartičky, napsání překladu, doplnění finského tvaru do kontextu volbou ze čtyř možností a výběr překladu ze čtyř možností
+- Kontextová nápověda ukáže překlad a přibližný gramatický tvar; v kontextu i při výběru překladu fungují klávesy 1–4, Enter pokračuje a po odpovědi se cvičení samo posune za dvě sekundy
 - Párovací hra: pět finských slov a pět samostatně promíchaných uložených překladů; správné dvojice se neodhalují před výběrem, každá se počítá jako procvičení a po dokončení kola se za 2 sekundy spustí další
 - Slovník s filtrem podle úrovně, slovního druhu, tématu a stavu učení; zobrazuje slova s četností alespoň 0,1 % celkových výskytů a umožňuje je vyřadit z procvičování
 - Oprava importovaného lemmatu i slovního druhu; při duplicitě lze lemmata sloučit včetně četností, tvarů, kontextů a pokroku
-- Rozdělení lemmatu podle vybraných povrchových tvarů, například při rozlišném významu; oprava, sloučení a rozdělení se zachovají při dalším importu
+- Více významů u jednoho lemmatu s přiřazením konkrétních kontextových vět ke každému významu
 - Automatické návrhy sémantických témat (například zvířata, jídlo, domov a cestování), které lze ve slovníku změnit
-- Série učení a odznaky za pravidelné učení, překlady a dokončené párovací kolo
+- Série učení a víceúrovňové odznaky za pravidelné učení, překlady, procvičování i správné odpovědi za sebou
 - Potvrzení překladu klávesou Enter a ukládání pokroku v místním úložišti prohlížeče
 - Export studijního pokroku jako zálohy
 

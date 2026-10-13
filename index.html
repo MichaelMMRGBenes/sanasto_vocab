@@ -144,6 +144,12 @@
     .word-edit { margin-top:13px; border-top:1px solid var(--line); padding-top:10px; }
     .word-edit summary { color:var(--green); cursor:pointer; font-size:.82rem; font-weight:800; }
     .word-edit-fields { display:grid; grid-template-columns:minmax(150px,1fr) minmax(160px,.8fr) auto; gap:8px; margin-top:10px; }
+    .sense-editor-fields { grid-template-columns:1fr; }
+    .sense-group { display:grid; gap:9px; padding:12px; border:1px solid var(--line); border-radius:13px; background:var(--surface-soft); }
+    .sense-context-item { display:flex; gap:9px; align-items:flex-start; padding:8px 10px; border-radius:10px; background:var(--surface); font-size:.82rem; }
+    .sense-context-item input { margin-top:3px; accent-color:var(--green); }
+    .context-disclosure { border:1px solid var(--line); border-radius:12px; padding:11px 13px; background:var(--surface-soft); }
+    .context-disclosure > summary { color:var(--green); cursor:pointer; font-size:.84rem; font-weight:800; }
     .achievement-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
     .achievement { border:1px solid var(--line); border-radius:14px; padding:12px; background:var(--surface-soft); }
     .achievement.locked { opacity:.55; }
@@ -415,7 +421,9 @@
     lesson: "sanasto_current_lesson_v1",
     practice: "sanasto_daily_practice_v1",
     merges: "sanasto_lemma_merges_v1",
-    splits: "sanasto_lemma_splits_v1"
+    splits: "sanasto_lemma_splits_v1",
+    senses: "sanasto_word_senses_v1",
+    answerStreak: "sanasto_answer_streak_v1"
   };
 
   // Ilustrační náhled: četnosti pěti nejčastějších lemmat z uživatelova výpisu.
@@ -597,12 +605,13 @@
     "Doplnit překlady": "Add translations", "Slovník": "Dictionary", "Přehled": "Overview"
   };
   const ACHIEVEMENTS = [
-    { id: "first_day", title: "První krok", text: "Uč se jeden den.", check: () => Object.keys(studyDays).length >= 1 },
-    { id: "streak_3", title: "Tři dny v řadě", text: "Udrž třídenní sérii.", check: () => currentStreak() >= 3 },
-    { id: "streak_7", title: "Týdenní plamen", text: "Uč se sedm dní v řadě.", check: () => currentStreak() >= 7 },
-    { id: "translations_10", title: "Překladatel", text: "Ulož deset překladů.", check: () => Object.keys(meanings).filter(key => key.endsWith("|" + targetLanguage) && meanings[key]).length >= 10 },
-    { id: "known_10", title: "Deset jistých", text: "Označ deset slov jako známá.", check: () => Object.values(ratings).filter(value => value === "known").length >= 10 },
-    { id: "first_match", title: "Spojovací talent", text: "Dokonči první párovací kolo.", check: () => (quizStats.rounds || 0) >= 1 }
+    { id: "study_days", title: "Pravidelnost", titleEn: "Consistency", text: "Celkem aktivních studijních dnů.", textEn: "Total active study days.", tiers: [1, 7, 30, 100], measure: () => Object.keys(studyDays).length },
+    { id: "study_streak", title: "Denní série", titleEn: "Daily streak", text: "Dny učení v řadě.", textEn: "Study days in a row.", tiers: [3, 7, 30, 100], measure: () => currentStreak() },
+    { id: "translations", title: "Překladatel", titleEn: "Translator", text: "Uložené překlady a další významy.", textEn: "Saved translations and additional meanings.", tiers: [10, 50, 100, 500], measure: () => Object.keys(meanings).filter(key => key.endsWith("|" + targetLanguage) && meanings[key]).length + Object.values(wordSenses).flatMap(senses => Array.isArray(senses) ? senses : []).filter(sense => sense.translations?.[targetLanguage]).length },
+    { id: "known_words", title: "Jistá slovíčka", titleEn: "Confident words", text: "Slova označená jako známá.", textEn: "Words marked as known.", tiers: [10, 50, 100, 500], measure: () => Object.values(ratings).filter(value => value === "known").length },
+    { id: "matching_rounds", title: "Spojovací talent", titleEn: "Matching master", text: "Dokončená kola párovací hry.", textEn: "Completed matching rounds.", tiers: [1, 10, 50, 100], measure: () => Number(quizStats.rounds) || 0 },
+    { id: "answer_streak", title: "Série správných odpovědí", titleEn: "Correct answer streak", text: "Správné odpovědi za sebou napříč cvičeními.", textEn: "Consecutive correct answers across exercises.", tiers: [10, 25, 50, 100], measure: () => Number(answerStreakStats.best) || 0 },
+    { id: "daily_tens", title: "Desítka dne", titleEn: "Daily ten", text: "Dny, kdy procvičíš alespoň 10 různých slov.", textEn: "Days with at least 10 different words practiced.", tiers: [1, 7, 30, 100], measure: () => Object.values(dailyPractice).filter(day => day && Object.keys(day).length >= 10).length }
   ];
   const $ = (id) => document.getElementById(id);
   let terms = DEMO_TERMS.map(cloneTerm);
@@ -618,11 +627,13 @@
   let contextIndex = 0;
   let contextRevealed = false;
   let contextResult = null;
+  let contextQuestion = null;
   let choiceQuestion = null;
   let choiceIndex = 0;
   let lessonCelebrationLesson = 0;
   let toastTimer = null;
   let meanings = readStore(KEYS.meanings, {});
+  let wordSenses = readStore(KEYS.senses, {});
   let levelOverrides = readStore(KEYS.levels, {});
   let levelEstimates = readStore(KEYS.levelEstimates, {});
   let targetLanguage = readStore(KEYS.language, "cs");
@@ -637,6 +648,7 @@
   let studyDays = readStore(KEYS.studyDays, {});
   let dailyPractice = readStore(KEYS.practice, {});
   let unlockedAchievements = readStore(KEYS.achievements, {});
+  let answerStreakStats = readStore(KEYS.answerStreak, { current: 0, best: 0 });
   let selectedLesson = Number(readStore(KEYS.lesson, 0)) || 0;
   let quickFillIndex = 0;
   let quickFillController = null;
@@ -645,6 +657,8 @@
   let quickFillDraftOriginal = "";
   let currentRawData = null;
   let quizTransitionTimer = null;
+  let contextAutoTimer = null;
+  let choiceAutoTimer = null;
 
   function readStore(key, fallback) {
     try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
@@ -788,7 +802,18 @@
   }
   function safeKey(value) { return String(value || "").trim().toLocaleLowerCase("fi-FI"); }
   function meaningKey(lemma, language = targetLanguage) { return safeKey(lemma) + "|" + language; }
-  function meaningFor(lemma, language = targetLanguage) { return meanings[meaningKey(lemma, language)] || (language === "cs" ? meanings[safeKey(lemma)] || "" : ""); }
+  function senseStoreKey(term) {
+    const item = typeof term === "string" ? terms.find(entry => safeKey(entry.lemma) === safeKey(term)) : term;
+    return item?._sourceLemma || safeKey(item?.lemma || term);
+  }
+  function sensesFor(term) { const senses = wordSenses[senseStoreKey(term)]; return Array.isArray(senses) ? senses : []; }
+  function meaningVariantsFor(term, language = targetLanguage) {
+    const lemma = typeof term === "string" ? term : term?.lemma;
+    const primary = meanings[meaningKey(lemma, language)] || (language === "cs" ? meanings[safeKey(lemma)] || "" : "");
+    return [primary, ...sensesFor(term).map(sense => sense.translations?.[language] || "")].map(value => String(value).trim()).filter((value, index, values) => value && values.findIndex(other => safeKey(other) === safeKey(value)) === index);
+  }
+  function primaryMeaningFor(lemma, language = targetLanguage) { return meanings[meaningKey(lemma, language)] || (language === "cs" ? meanings[safeKey(lemma)] || "" : ""); }
+  function meaningFor(lemma, language = targetLanguage) { return meaningVariantsFor(lemma, language).join(", "); }
   function termLevel(term) {
     const key = safeKey(term.lemma);
     if (Object.prototype.hasOwnProperty.call(levelOverrides, key)) return levelOverrides[key];
@@ -846,6 +871,12 @@
     writeStore(KEYS.studyDays, studyDays);
     updateAchievements();
   }
+  function recordAnswerResult(correct) {
+    answerStreakStats.current = correct ? (Number(answerStreakStats.current) || 0) + 1 : 0;
+    answerStreakStats.best = Math.max(Number(answerStreakStats.best) || 0, answerStreakStats.current);
+    writeStore(KEYS.answerStreak, answerStreakStats);
+    updateAchievements();
+  }
   function recordMatchingPractice(lemma) {
     const term = terms.find(item => safeKey(item.lemma) === safeKey(lemma));
     if (term) recordWordPractice(term);
@@ -868,7 +899,10 @@
   }
   function updateAchievements() {
     for (const achievement of ACHIEVEMENTS) {
-      if (!unlockedAchievements[achievement.id] && achievement.check()) unlockedAchievements[achievement.id] = localDateKey();
+      const achieved = achievement.tiers.filter(threshold => achievement.measure() >= threshold).length;
+      const old = unlockedAchievements[achievement.id];
+      const oldLevel = typeof old === "string" ? (old ? 1 : 0) : Number(old?.level) || 0;
+      if (achieved > oldLevel) unlockedAchievements[achievement.id] = { level: achieved, date: localDateKey() };
     }
     writeStore(KEYS.achievements, unlockedAchievements);
   }
@@ -1329,7 +1363,7 @@
     if (!cardRevealed && cardMode === "typing") content += `<div class="answer-area"><label class="form-label" for="cardGuessInput">Napiš ${targetLanguage === "en" ? "English" : "český"} překlad zpaměti</label><input id="cardGuessInput" class="text-input" autocomplete="off" placeholder="Tvá odpověď…"><div class="section-subtitle">Slovo nejdřív zkus napsat bez nápovědy. Pokud ještě nemáš uložený překlad, můžeš ho přidat po odhalení odpovědi.</div></div>`;
     if (cardRevealed) {
       if (cardResult !== null) content += `<div class="quiz-feedback"><strong>${cardResult ? "Správně!" : "Ještě ne."}</strong> ${cardResult ? "Dobrá práce." : "Správný překlad můžeš zkontrolovat níže."}</div>`;
-      content += `<div class="answer-area"><label class="form-label" for="cardMeaningInput">${targetLanguage === "en" ? "English meaning / note" : "Český význam / vlastní poznámka"}</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="cardMeaningInput" class="text-input" maxlength="500" placeholder="${targetLanguage === "en" ? "Add an English meaning…" : "Např. být, existovat…"}" value="${escapeHtml(meaningFor(term.lemma))}"><button class="button" id="suggestCardBtn" type="button">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button class="button soft" id="saveCardMeaningBtn" type="button">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="section-subtitle">${!meaningFor(term.lemma) ? "Při odhalení se pokusím připravit návrh překladu; zkontroluj ho a ulož. " : "Význam je uložený. "}${termLevelNote(term) || `Úroveň ${termLevel(term) || "se odhaduje podle četnosti"}; v případě potřeby ji můžeš změnit ručně.`} Enter překlad uloží.</div><div class="word-row-foot" style="justify-content:center">${Object.entries(term.word_forms || {}).slice(0, 6).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("")}</div></div>`;
+      content += `<div class="answer-area"><label class="form-label" for="cardMeaningInput">${targetLanguage === "en" ? "English meaning / note" : "Český význam / vlastní poznámka"}</label><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="cardMeaningInput" class="text-input" maxlength="500" placeholder="${targetLanguage === "en" ? "Add an English meaning…" : "Např. být, existovat…"}" value="${escapeHtml(primaryMeaningFor(term.lemma))}"><button class="button" id="suggestCardBtn" type="button">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button class="button soft" id="saveCardMeaningBtn" type="button">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="section-subtitle">${!meaningFor(term.lemma) ? "Při odhalení se pokusím připravit návrh překladu; zkontroluj ho a ulož. " : "Význam je uložený. "}${termLevelNote(term) || `Úroveň ${termLevel(term) || "se odhaduje podle četnosti"}; v případě potřeby ji můžeš změnit ručně.`} Enter překlad uloží.</div><div class="word-row-foot" style="justify-content:center">${Object.entries(term.word_forms || {}).slice(0, 6).map(([form, count]) => `<span class="form-chip">${escapeHtml(form)} · ${number(count)}</span>`).join("")}</div></div>`;
     }
     $("cardContent").innerHTML = content;
     if (!cardRevealed) {
@@ -1338,7 +1372,7 @@
       const checkGuess = () => {
         const expected = meaningFor(term.lemma);
         if (!expected) { toast("Nejdřív přidej nebo navrhni překlad a ulož ho."); return; }
-        cardResult = answerMatches($("cardGuessInput").value, expected); cardRevealed = true; recordWordPractice(term); renderCards();
+        cardResult = answerMatches($("cardGuessInput").value, expected); cardRevealed = true; recordAnswerResult(cardResult); recordWordPractice(term); renderCards();
       };
       const checkButton = $("checkCardGuessBtn"); if (checkButton) checkButton.addEventListener("click", checkGuess);
       const guessInput = $("cardGuessInput"); if (guessInput) guessInput.addEventListener("keydown", event => { if (event.key === "Enter") { event.preventDefault(); checkGuess(); } });
@@ -1421,6 +1455,25 @@
   function contextPracticeTerms() {
     return activeTerms().filter(term => meaningFor(term.lemma) && contextExerciseFor(term));
   }
+  function createContextQuestion(term, exercise) {
+    const forms = terms.flatMap(item => [item.lemma, ...Object.keys(item.word_forms || {})]).concat(["olla", "talo", "kirja", "pieni", "tehdä", "vesi", "ihminen", "kaupunki"]);
+    const distractors = [...new Map(forms.filter(value => safeKey(value) !== safeKey(exercise.form)).map(value => [safeKey(value), value])).values()];
+    return { index: contextIndex, term, exercise, options: shuffle([exercise.form, ...shuffle(distractors).slice(0, 3)]) };
+  }
+  function advanceContextPractice() {
+    if (contextAutoTimer) { clearTimeout(contextAutoTimer); contextAutoTimer = null; }
+    const list = contextPracticeTerms();
+    if (list.length) contextIndex = (contextIndex + 1) % list.length;
+    contextQuestion = null; contextRevealed = false; contextResult = null;
+    renderContextPractice();
+  }
+  function scheduleContextAdvance(question) {
+    if (contextAutoTimer) clearTimeout(contextAutoTimer);
+    contextAutoTimer = setTimeout(() => {
+      contextAutoTimer = null;
+      if (activeTab === "context" && contextQuestion === question && contextRevealed) advanceContextPractice();
+    }, 2000);
+  }
   function renderContextPractice() {
     const list = contextPracticeTerms();
     const content = $("contextExerciseContent");
@@ -1428,6 +1481,8 @@
     if (contextIndex >= list.length) contextIndex = 0;
     const term = list[contextIndex];
     if (!term) {
+      contextQuestion = null;
+      if (contextAutoTimer) { clearTimeout(contextAutoTimer); contextAutoTimer = null; }
       $("contextProgress").textContent = targetLanguage === "en" ? "No context exercises yet" : "Zatím bez kontextových cvičení";
       $("contextLemma").textContent = targetLanguage === "en" ? "Add translations and import contexts to begin." : "Pro začátek doplň překlady a načti kontexty.";
       content.replaceChildren();
@@ -1435,6 +1490,8 @@
       return;
     }
     const exercise = contextExerciseFor(term, contextIndex % Math.max(1, term.contexts.length));
+    if (!contextQuestion || contextQuestion.index !== contextIndex || contextQuestion.term !== term) contextQuestion = createContextQuestion(term, exercise);
+    const question = contextQuestion;
     $("contextProgress").textContent = (targetLanguage === "en" ? "Sentence " : "Věta ") + (contextIndex + 1) + " / " + list.length;
     $("contextLemma").textContent = term.lemma;
     const sentence = document.createElement("p");
@@ -1455,63 +1512,48 @@
       feedback.innerHTML = "<strong>" + (contextResult ? (targetLanguage === "en" ? "Correct!" : "Správně!") : (targetLanguage === "en" ? "Answer:" : "Správný tvar:")) + "</strong> " + escapeHtml(exercise.form);
       content.appendChild(feedback);
     } else {
-      const label = document.createElement("label");
+      const label = document.createElement("div");
       label.className = "form-label";
-      label.htmlFor = "contextGuessInput";
-      label.textContent = targetLanguage === "en" ? "Type the Finnish form used in the sentence" : "Napiš finský tvar použitý ve větě";
-      const input = document.createElement("input");
-      input.id = "contextGuessInput";
-      input.className = "text-input";
-      input.autocomplete = "off";
-      input.placeholder = targetLanguage === "en" ? "Your answer…" : "Tvá odpověď…";
-      content.append(label, input);
-      input.addEventListener("keydown", event => {
-        if (event.key === "Enter") { event.preventDefault(); checkContextAnswer(); }
+      label.textContent = targetLanguage === "en" ? "Choose the Finnish form · keys 1–4" : "Vyber finský tvar · klávesy 1–4";
+      const options = document.createElement("div");
+      options.className = "practice-options";
+      question.options.forEach((value, index) => {
+        const button = document.createElement("button");
+        button.type = "button"; button.className = "practice-option";
+        button.textContent = `${index + 1}. ${value}`;
+        button.addEventListener("click", () => checkContextAnswer(index));
+        options.appendChild(button);
       });
+      content.append(label, options);
     }
     actions.replaceChildren();
     if (!contextRevealed) {
-      const check = document.createElement("button");
-      check.className = "button primary";
-      check.type = "button";
-      check.textContent = targetLanguage === "en" ? "Check answer" : "Zkontrolovat";
-      check.addEventListener("click", checkContextAnswer);
-      const reveal = document.createElement("button");
-      reveal.className = "button";
-      reveal.type = "button";
-      reveal.textContent = targetLanguage === "en" ? "Show answer" : "Ukázat odpověď";
-      reveal.addEventListener("click", () => { contextResult = false; contextRevealed = true; recordWordPractice(term); renderContextPractice(); });
-      actions.append(check, reveal);
+      actions.replaceChildren();
     } else {
       const next = document.createElement("button");
       next.className = "button primary";
       next.type = "button";
-      next.textContent = targetLanguage === "en" ? "Next sentence →" : "Další věta →";
-      next.addEventListener("click", () => { contextIndex = (contextIndex + 1) % list.length; contextRevealed = false; contextResult = null; renderContextPractice(); });
+      next.textContent = targetLanguage === "en" ? "Next sentence · Enter →" : "Další věta · Enter →";
+      next.addEventListener("click", advanceContextPractice);
       actions.appendChild(next);
     }
   }
-  function checkContextAnswer() {
-    const list = contextPracticeTerms();
-    const term = list[contextIndex];
-    const exercise = term && contextExerciseFor(term, contextIndex % Math.max(1, term.contexts.length));
-    const input = $("contextGuessInput");
-    if (!term || !exercise || !input || !input.value.trim()) {
-      toast(targetLanguage === "en" ? "Type a Finnish form first." : "Nejdřív napiš finský tvar.");
-      if (input) input.focus();
-      return;
-    }
-    contextResult = answerMatches(input.value, exercise.form, false);
+  function checkContextAnswer(index) {
+    if (!contextQuestion || contextRevealed || index < 0 || index > 3) return;
+    const { term, exercise } = contextQuestion;
+    contextResult = safeKey(contextQuestion.options[index]) === safeKey(exercise.form);
     contextRevealed = true;
+    recordAnswerResult(contextResult);
     recordWordPractice(term);
     renderContextPractice();
+    scheduleContextAdvance(contextQuestion);
   }
   function startChoiceExercise() {
     const available = activeTerms().filter(term => meaningFor(term.lemma));
-    const options = [...new Set(available.map(term => meaningFor(term.lemma).trim()).filter(Boolean))];
+    const options = [...new Set(available.flatMap(term => meaningVariantsFor(term)).map(value => value.trim()).filter(Boolean))];
     if (options.length < 4) { renderChoiceExercise(); toast(targetLanguage === "en" ? "Add at least four different translations first." : "Nejdřív doplň alespoň čtyři různé překlady."); return; }
     const term = available[choiceIndex % available.length];
-    const correct = meaningFor(term.lemma).trim();
+    const correct = randomItem(meaningVariantsFor(term));
     const distractors = shuffle(options.filter(value => safeKey(value) !== safeKey(correct))).slice(0, 3);
     choiceQuestion = { term, correct, options: shuffle([correct, ...distractors]), answered: false, result: false };
     renderChoiceExercise();
@@ -1535,7 +1577,7 @@
       const button = document.createElement("button");
       button.type = "button";
       button.className = "practice-option";
-      button.textContent = value;
+      button.textContent = `${index + 1}. ${value}`;
       button.disabled = choiceQuestion.answered;
       if (choiceQuestion.answered && safeKey(value) === safeKey(choiceQuestion.correct)) button.classList.add("correct");
       if (choiceQuestion.answered && index === choiceQuestion.selected && !choiceQuestion.result) button.classList.add("incorrect");
@@ -1548,6 +1590,7 @@
         ? "<strong>" + (targetLanguage === "en" ? "Correct!" : "Správně!") + "</strong> " + (targetLanguage === "en" ? "Good job." : "Výborně.")
         : "<strong>" + (targetLanguage === "en" ? "Not quite." : "Tentokrát ne.") + "</strong> " + (targetLanguage === "en" ? "The correct translation is " : "Správný překlad je ") + "<strong>" + escapeHtml(choiceQuestion.correct) + "</strong>.";
       $("nextChoiceBtn").hidden = false;
+      $("nextChoiceBtn").textContent = targetLanguage === "en" ? "Next word · Enter →" : "Další slovo · Enter →";
     }
   }
   function checkChoiceAnswer(index) {
@@ -1555,8 +1598,21 @@
     choiceQuestion.answered = true;
     choiceQuestion.selected = index;
     choiceQuestion.result = safeKey(choiceQuestion.options[index]) === safeKey(choiceQuestion.correct);
+    recordAnswerResult(choiceQuestion.result);
     recordWordPractice(choiceQuestion.term);
     renderChoiceExercise();
+    scheduleChoiceAdvance(choiceQuestion);
+  }
+  function scheduleChoiceAdvance(question) {
+    if (choiceAutoTimer) clearTimeout(choiceAutoTimer);
+    choiceAutoTimer = setTimeout(() => {
+      choiceAutoTimer = null;
+      if (activeTab === "choice" && choiceQuestion === question && question.answered) advanceChoiceExercise();
+    }, 2000);
+  }
+  function advanceChoiceExercise() {
+    if (choiceAutoTimer) { clearTimeout(choiceAutoTimer); choiceAutoTimer = null; }
+    choiceIndex++; choiceQuestion = null; startChoiceExercise();
   }
 
   function startMatchingGame(pairs) {
@@ -1652,8 +1708,10 @@
     const pair = game.pairs.find(item => safeKey(item.lemma) === safeKey(game.selectedFinnish));
     if (pair && safeKey(pair.lemma) === safeKey(game.selectedTranslation)) {
       game.matched.push(pair.lemma); quizStats.correct += 1; game.wrong = null;
+      recordAnswerResult(true);
       recordMatchingPractice(pair.lemma);
     } else {
+      recordAnswerResult(false);
       game.wrong = { fi: game.selectedFinnish, translation: game.selectedTranslation };
     }
     game.selectedFinnish = ""; game.selectedTranslation = "";
@@ -1692,11 +1750,19 @@
     $("quickFillMeta").textContent = `${typeLabel(term.type)} · ${number(term.count)} výskytů · ${termLevel(term) || "bez úrovně"}${categoryFor(term) ? ` · ${CATEGORIES[categoryFor(term)]}` : ""}`;
     $("quickFillLabel").textContent = targetLanguage === "en" ? "English translation" : "Český překlad";
     $("quickFillMeta").textContent = typeLabel(term.type) + " · " + number(term.count) + (targetLanguage === "en" ? " occurrences" : " výskytů") + " · " + (termLevel(term) || (targetLanguage === "en" ? "no level" : "bez úrovně")) + (categoryFor(term) ? " · " + categoryLabel(categoryFor(term)) : "");
-    $("quickFillContext").innerHTML = term.contexts.length
-      ? '<div class="context-quote"><span class="quote-label">' + (targetLanguage === "en" ? "Examples from your database" : "Kontexty z tvé databáze") + "</span>" + renderWordContexts({ contexts: term.contexts.slice(0, 3) }) + "</div>"
-      : '<div class="context-quote"><span class="quote-label">' + (targetLanguage === "en" ? "Context" : "Kontext") + "</span><p>" + (targetLanguage === "en" ? "No example sentence was imported for this word." : "Pro toto slovo nebyla importována žádná věta.") + "</p></div>";
+    const contextDetails = document.createElement("details");
+    contextDetails.className = "context-disclosure";
+    const contextSummary = document.createElement("summary");
+    contextSummary.textContent = targetLanguage === "en" ? "Show example contexts" : "Zobrazit kontextové věty";
+    const contextBody = document.createElement("div");
+    contextBody.className = "context-quote";
+    contextBody.innerHTML = term.contexts.length
+      ? '<span class="quote-label">' + (targetLanguage === "en" ? "Examples from your database" : "Kontexty z tvé databáze") + "</span>" + renderWordContexts({ contexts: term.contexts.slice(0, 3) })
+      : '<span class="quote-label">' + (targetLanguage === "en" ? "Context" : "Kontext") + "</span><p>" + (targetLanguage === "en" ? "No example sentence was imported for this word." : "Pro toto slovo nebyla importována žádná věta.") + "</p>";
+    contextDetails.append(contextSummary, contextBody);
+    $("quickFillContext").replaceChildren(contextDetails);
     input.placeholder = targetLanguage === "en" ? "Suggested translation…" : "Navrhovaný překlad…";
-    const saved = meaningFor(term.lemma);
+    const saved = primaryMeaningFor(term.lemma);
     input.value = saved;
     quickFillDraftOriginal = saved;
     $("quickFillStatus").textContent = saved ? (targetLanguage === "en" ? "Edit the saved translation, or press Escape to exclude this word from learning." : "Uložený překlad můžeš upravit. Escape slovo vyřadí z učení.") : (targetLanguage === "en" ? "Preparing a suggestion for this word…" : "Připravuji návrh pro toto jedno slovo…");
@@ -1868,11 +1934,15 @@
     writeStore(KEYS.hidden, hiddenTerms); writeStore(KEYS.categories, categoryAssignments);
     writeStore(KEYS.practice, dailyPractice);
     writeStore(KEYS.merges, mergeRules); writeStore(KEYS.splits, splitRules);
+    writeStore(KEYS.senses, wordSenses); writeStore(KEYS.answerStreak, answerStreakStats);
   }
   function mergeLemmaTerms(source, target) {
     const sourceKey = safeKey(source.lemma), targetKey = safeKey(target.lemma);
     const sourceId = source._sourceLemma || sourceKey, targetId = target._sourceLemma || targetKey;
     mergeUserProgress(sourceKey, targetKey);
+    const sourceSenses = Array.isArray(wordSenses[sourceId]) ? wordSenses[sourceId] : [];
+    if (sourceSenses.length && sourceId !== targetId) wordSenses[targetId] = [...(wordSenses[targetId] || []), ...sourceSenses];
+    if (sourceId !== targetId) delete wordSenses[sourceId];
     mergeTermData(target, source);
     mergeRules[sourceId] = targetId;
     terms = terms.filter(term => term !== source);
@@ -1964,6 +2034,70 @@
     if (!term.contexts.length) return `<div class="empty-state"><strong>Kontexty nejsou k dispozici.</strong>V aktuální databázi nejsou k tomuto lemmatu uložené věty.</div>`;
     return `<div class="context-list">${term.contexts.map((context, index) => `<div class="context-item"><p>${escapeHtml(context.short_sentence || context.sentence || "")}</p>${context.full_context ? `<details><summary class="subtle-button">Zobrazit širší kontext</summary><p>${escapeHtml(context.full_context)}</p></details>` : ""}<small>Výskyt ${number(index + 1)}${context.word ? ` · tvar: ${escapeHtml(context.word)}` : ""}${context.position ? ` · pozice: ${number(context.position)}` : ""}${context.date ? ` · ${escapeHtml(context.date)}` : ""}</small></div>`).join("")}</div>`;
   }
+  function contextIdentity(context) { return safeKey([context.date || "", context.position ?? "", context.word || "", context.short_sentence || context.sentence || ""].join("|")); }
+  function renderSenseEditor(row, term) {
+    const details = document.createElement("details");
+    details.className = "word-edit word-senses";
+    const summary = document.createElement("summary");
+    summary.textContent = targetLanguage === "en" ? "Meanings and their context sentences" : "Významy a jejich kontextové věty";
+    const body = document.createElement("div"); body.className = "word-edit-fields sense-editor-fields";
+    const list = sensesFor(term);
+    if (!list.length) {
+      const note = document.createElement("div"); note.className = "section-subtitle";
+      note.textContent = targetLanguage === "en" ? "Add a separate meaning when this word has another use." : "Pokud má slovo další význam, přidej ho samostatně.";
+      body.appendChild(note);
+    }
+    const storeKey = senseStoreKey(term);
+    const persistSenses = () => { wordSenses[storeKey] = list; writeStore(KEYS.senses, wordSenses); updateAchievements(); renderOverview(); };
+    list.forEach((sense, senseIndex) => {
+      const group = document.createElement("div"); group.className = "sense-group";
+      const translationLabel = document.createElement("label"); translationLabel.className = "form-label";
+      translationLabel.textContent = (targetLanguage === "en" ? "Meaning " : "Význam ") + (senseIndex + 1);
+      const translationInput = document.createElement("input"); translationInput.className = "text-input";
+      translationInput.maxLength = 500; translationInput.value = sense.translations?.[targetLanguage] || "";
+      translationInput.placeholder = targetLanguage === "en" ? "Additional translation…" : "Další překlad…";
+      translationInput.addEventListener("change", () => {
+        sense.translations = sense.translations || {}; sense.translations[targetLanguage] = translationInput.value.trim(); persistSenses();
+      });
+      translationLabel.appendChild(translationInput); group.appendChild(translationLabel);
+      const contextTitle = document.createElement("div"); contextTitle.className = "small-label";
+      contextTitle.textContent = targetLanguage === "en" ? "Sentences that use this meaning" : "Věty s tímto významem"; group.appendChild(contextTitle);
+      if (!term.contexts.length) {
+        const noContexts = document.createElement("div"); noContexts.className = "section-subtitle";
+        noContexts.textContent = targetLanguage === "en" ? "No imported sentences for this word." : "K tomuto slovu nejsou importované věty."; group.appendChild(noContexts);
+      } else {
+        term.contexts.forEach((context, index) => {
+          const identity = contextIdentity(context);
+          const label = document.createElement("label"); label.className = "sense-context-item";
+          const checkbox = document.createElement("input"); checkbox.type = "checkbox";
+          checkbox.checked = (sense.contextIds || []).includes(identity);
+          checkbox.addEventListener("change", () => {
+            sense.contextIds = sense.contextIds || [];
+            if (checkbox.checked && !sense.contextIds.includes(identity)) sense.contextIds.push(identity);
+            if (!checkbox.checked) sense.contextIds = sense.contextIds.filter(id => id !== identity);
+            persistSenses();
+          });
+          const sentence = document.createElement("span"); sentence.textContent = context.short_sentence || context.sentence || (targetLanguage === "en" ? `Sentence ${index + 1}` : `Věta ${index + 1}`);
+          label.append(checkbox, sentence); group.appendChild(label);
+        });
+      }
+      const remove = document.createElement("button"); remove.type = "button"; remove.className = "button danger-soft";
+      remove.textContent = targetLanguage === "en" ? "Remove this meaning" : "Odebrat tento význam";
+      remove.addEventListener("click", () => { wordSenses[storeKey] = list.filter(item => item !== sense); if (!wordSenses[storeKey].length) delete wordSenses[storeKey]; writeStore(KEYS.senses, wordSenses); renderAll(); });
+      group.appendChild(remove); body.appendChild(group);
+    });
+    const add = document.createElement("button"); add.type = "button"; add.className = "button";
+    add.textContent = targetLanguage === "en" ? "+ Add another meaning" : "+ Přidat další význam";
+    add.addEventListener("click", () => {
+      const current = Array.isArray(wordSenses[storeKey]) ? wordSenses[storeKey] : [];
+      current.push({ id: `sense-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, translations: {}, contextIds: [] });
+      wordSenses[storeKey] = current; writeStore(KEYS.senses, wordSenses); renderDictionary();
+      const refreshed = [...$("wordList").querySelectorAll(".word-row")].find(item => safeKey(item.dataset.termRow) === safeKey(term.lemma));
+      const refreshedDetails = refreshed?.querySelector(".word-senses");
+      if (refreshedDetails) { refreshedDetails.open = true; refreshedDetails.querySelector("input")?.focus(); }
+    });
+    body.appendChild(add); details.append(summary, body); row.appendChild(details);
+  }
   function renderDictionary() {
     const list = dictionaryFiltered();
     const minimumFrequency = dictionaryFrequencyThreshold();
@@ -1977,53 +2111,12 @@
       const currentCategory = categoryFor(term);
       const typeChoices = ["noun", "verb", "adjective", "pronoun", "adverb", "adposition", "conjunction", "interjection", "numeral", "other", "unknown"];
       if (term.type && !typeChoices.includes(term.type)) typeChoices.unshift(term.type);
-      return `<article class="word-row" data-term-row="${escapeHtml(term.lemma)}"><div class="word-row-head"><div><div class="word-title">${escapeHtml(term.lemma)}</div><div class="word-meta">${escapeHtml(typeLabel(term.type))} · ${escapeHtml(status)}${currentCategory ? ` · ${escapeHtml(CATEGORIES[currentCategory])}` : ""}</div></div><div class="meaning-edit"><input class="text-input meaning-input" data-meaning-input="${escapeHtml(term.lemma)}" value="${escapeHtml(meaningFor(term.lemma))}" placeholder="${targetLanguage === "en" ? "English meaning…" : "Český význam…"}" maxlength="500" aria-label="${targetLanguage === "en" ? "English meaning" : "Český význam"} slova ${escapeHtml(term.lemma)}"><button type="button" class="button suggest-meaning" data-suggest-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button type="button" class="button soft save-meaning" data-save-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="word-frequency"><strong>${number(term.count)}×</strong><span>${number(term.context_count)} kontextů</span></div></div><div class="word-row-foot">${forms}<label class="small-label" title="${escapeHtml(termLevelNote(term))}">Úroveň · ${escapeHtml(termLevelSource(term))} <select class="select-input term-level" data-term-level="${escapeHtml(term.lemma)}" aria-label="Úroveň CEFR pro ${escapeHtml(term.lemma)}"><option value="" ${!termLevel(term) ? "selected" : ""}>Nezařazeno</option>${["A1","A2","B1","B2","C1","C2"].map(level => `<option value="${level}" ${termLevel(term) === level ? "selected" : ""}>${level}</option>`).join("")}</select></label><label class="small-label">Téma <select class="select-input term-category" data-term-category="${escapeHtml(term.lemma)}"><option value="">Automatický návrh / bez tématu</option>${Object.entries(CATEGORIES).map(([key, label]) => `<option value="${key}" ${currentCategory === key ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select></label><button type="button" class="button ${isHidden(term) ? "soft" : "danger-soft"} toggle-hidden" data-hidden-lemma="${escapeHtml(term.lemma)}">${isHidden(term) ? "Vrátit do učení" : "Vyřadit z učení"}</button><button type="button" class="subtle-button toggle-contexts" data-context-lemma="${escapeHtml(term.lemma)}">Zobrazit kontexty (${number(term.contexts.length)}) ↓</button></div>${termLevelNote(term) ? `<div class="section-subtitle" style="padding:0 14px 12px">${escapeHtml(termLevelNote(term))}</div>` : ""}<details class="word-edit"><summary>Upravit heslo nebo slovní druh</summary><div class="word-edit-fields"><label class="form-label">Lemma<input class="text-input edit-lemma" value="${escapeHtml(term.lemma)}" maxlength="100"></label><label class="form-label">Slovní druh<select class="select-input edit-type">${typeChoices.map(type => `<option value="${escapeHtml(type)}" ${term.type === type ? "selected" : ""}>${escapeHtml(typeLabel(type))}</option>`).join("")}</select></label><button class="button save-word-edit" data-edit-lemma="${escapeHtml(term.lemma)}" type="button">Uložit opravu</button></div></details><div class="contexts-slot" data-context-slot="${escapeHtml(term.lemma)}" hidden></div></article>`;
+      return `<article class="word-row" data-term-row="${escapeHtml(term.lemma)}"><div class="word-row-head"><div><div class="word-title">${escapeHtml(term.lemma)}</div><div class="word-meta">${escapeHtml(typeLabel(term.type))} · ${escapeHtml(status)}${currentCategory ? ` · ${escapeHtml(CATEGORIES[currentCategory])}` : ""}</div></div><div class="meaning-edit"><input class="text-input meaning-input" data-meaning-input="${escapeHtml(term.lemma)}" value="${escapeHtml(primaryMeaningFor(term.lemma))}" placeholder="${targetLanguage === "en" ? "English meaning…" : "Český význam…"}" maxlength="500" aria-label="${targetLanguage === "en" ? "English meaning" : "Český význam"} slova ${escapeHtml(term.lemma)}"><button type="button" class="button suggest-meaning" data-suggest-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Suggest" : "Navrhnout překlad"}</button><button type="button" class="button soft save-meaning" data-save-meaning="${escapeHtml(term.lemma)}">${targetLanguage === "en" ? "Accept / save" : "Přijmout / uložit"}</button></div><div class="word-frequency"><strong>${number(term.count)}×</strong><span>${number(term.context_count)} kontextů</span></div></div><div class="word-row-foot">${forms}<label class="small-label" title="${escapeHtml(termLevelNote(term))}">Úroveň · ${escapeHtml(termLevelSource(term))} <select class="select-input term-level" data-term-level="${escapeHtml(term.lemma)}" aria-label="Úroveň CEFR pro ${escapeHtml(term.lemma)}"><option value="" ${!termLevel(term) ? "selected" : ""}>Nezařazeno</option>${["A1","A2","B1","B2","C1","C2"].map(level => `<option value="${level}" ${termLevel(term) === level ? "selected" : ""}>${level}</option>`).join("")}</select></label><label class="small-label">Téma <select class="select-input term-category" data-term-category="${escapeHtml(term.lemma)}"><option value="">Automatický návrh / bez tématu</option>${Object.entries(CATEGORIES).map(([key, label]) => `<option value="${key}" ${currentCategory === key ? "selected" : ""}>${escapeHtml(label)}</option>`).join("")}</select></label><button type="button" class="button ${isHidden(term) ? "soft" : "danger-soft"} toggle-hidden" data-hidden-lemma="${escapeHtml(term.lemma)}">${isHidden(term) ? "Vrátit do učení" : "Vyřadit z učení"}</button><button type="button" class="subtle-button toggle-contexts" data-context-lemma="${escapeHtml(term.lemma)}">Zobrazit kontexty (${number(term.contexts.length)}) ↓</button></div>${termLevelNote(term) ? `<div class="section-subtitle" style="padding:0 14px 12px">${escapeHtml(termLevelNote(term))}</div>` : ""}<details class="word-edit"><summary>Upravit heslo nebo slovní druh</summary><div class="word-edit-fields"><label class="form-label">Lemma<input class="text-input edit-lemma" value="${escapeHtml(term.lemma)}" maxlength="100"></label><label class="form-label">Slovní druh<select class="select-input edit-type">${typeChoices.map(type => `<option value="${escapeHtml(type)}" ${term.type === type ? "selected" : ""}>${escapeHtml(typeLabel(type))}</option>`).join("")}</select></label><button class="button save-word-edit" data-edit-lemma="${escapeHtml(term.lemma)}" type="button">Uložit opravu</button></div></details><div class="contexts-slot" data-context-slot="${escapeHtml(term.lemma)}" hidden></div></article>`;
     }).join("");
     for (const row of $("wordList").querySelectorAll(".word-row")) {
       const term = terms.find(item => safeKey(item.lemma) === safeKey(row.dataset.termRow));
       if (!term) continue;
-      const details = document.createElement("details");
-      details.className = "word-edit";
-      const summary = document.createElement("summary");
-      summary.textContent = targetLanguage === "en" ? "Split this lemma by meaning or form" : "Rozdělit lemma podle významu nebo tvaru";
-      const fields = document.createElement("div");
-      fields.className = "word-edit-fields";
-      const lemmaLabel = document.createElement("label");
-      lemmaLabel.className = "form-label";
-      lemmaLabel.textContent = targetLanguage === "en" ? "New lemma" : "Nové lemma";
-      const lemmaInput = document.createElement("input");
-      lemmaInput.className = "text-input split-lemma";
-      lemmaInput.maxLength = 100;
-      lemmaInput.placeholder = targetLanguage === "en" ? "New dictionary form" : "Nový základní tvar";
-      lemmaLabel.appendChild(lemmaInput);
-      const formsLabel = document.createElement("label");
-      formsLabel.className = "form-label";
-      formsLabel.textContent = targetLanguage === "en" ? "Forms to move" : "Tvary k přesunu";
-      const formsInput = document.createElement("input");
-      formsInput.className = "text-input split-forms";
-      formsInput.placeholder = Object.keys(term.word_forms || {}).slice(0, 3).join(", ");
-      formsLabel.appendChild(formsInput);
-      const typeLabelNode = document.createElement("label");
-      typeLabelNode.className = "form-label";
-      typeLabelNode.textContent = targetLanguage === "en" ? "Part of speech" : "Slovní druh";
-      const typeSelect = document.createElement("select");
-      typeSelect.className = "select-input split-type";
-      for (const type of ["noun", "verb", "adjective", "pronoun", "adverb", "adposition", "conjunction", "interjection", "numeral", "other", "unknown"]) {
-        const option = document.createElement("option");
-        option.value = type;
-        option.textContent = typeLabel(type);
-        option.selected = type === term.type;
-        typeSelect.appendChild(option);
-      }
-      typeLabelNode.appendChild(typeSelect);
-      const splitButton = document.createElement("button");
-      splitButton.className = "button split-lemma-action";
-      splitButton.type = "button";
-      splitButton.textContent = targetLanguage === "en" ? "Split lemma" : "Rozdělit lemma";
-      splitButton.addEventListener("click", () => splitLemmaTerm(term, lemmaInput.value, formsInput.value, typeSelect.value));
-      fields.append(lemmaLabel, formsLabel, typeLabelNode, splitButton);
-      details.append(summary, fields);
-      row.appendChild(details);
+      renderSenseEditor(row, term);
     }
     $("wordList").querySelectorAll(".save-meaning").forEach(button => button.addEventListener("click", () => {
       const lemma = button.dataset.saveMeaning; const input = $("wordList").querySelector(`[data-meaning-input="${CSS.escape(lemma)}"]`);
@@ -2062,8 +2155,18 @@
     ].map(([label, value, color]) => `<div style="margin:14px 0"><div style="display:flex;justify-content:space-between;gap:12px;font-size:.85rem;margin-bottom:6px"><span>${label}</span><strong>${number(value)} · ${percent(value)} %</strong></div><div style="height:7px;border-radius:99px;background:var(--line);overflow:hidden"><div style="height:100%;width:${percent(value)}%;background:${color};border-radius:inherit"></div></div></div>`).join("") + `<p class="section-subtitle" style="margin-top:20px">${matchingSummary}</p>`;
     updateAchievements();
     $("achievementGrid").innerHTML = ACHIEVEMENTS.map(item => {
-      const unlocked = unlockedAchievements[item.id];
-      return `<div class="achievement${unlocked ? "" : " locked"}"><strong>${unlocked ? "🏅 " : "🔒 "}${escapeHtml(item.title)}</strong><small>${escapeHtml(item.text)}${unlocked ? ` Získáno ${escapeHtml(unlocked)}.` : ""}</small></div>`;
+      const record = unlockedAchievements[item.id];
+      const level = typeof record === "string" ? (record ? 1 : 0) : Number(record?.level) || 0;
+      const progress = Number(item.measure()) || 0;
+      const tierNames = targetLanguage === "en" ? ["Bronze", "Silver", "Gold", "Diamond"] : ["Bronz", "Stříbro", "Zlato", "Diamant"];
+      const title = targetLanguage === "en" ? (item.titleEn || item.title) : item.title;
+      const description = targetLanguage === "en" ? (item.textEn || item.text) : item.text;
+      const next = item.tiers[level] || null;
+      const levelText = targetLanguage === "en" ? `Level ${level}/4 · ` : `Úroveň ${level}/4 · `;
+      const progressText = next ? `${progress}/${next}` : (targetLanguage === "en" ? "maximum level" : "maximální úroveň");
+      const date = typeof record === "string" ? record : record?.date;
+      const dateText = date ? (targetLanguage === "en" ? ` · reached ${date}` : ` · dosaženo ${date}`) : "";
+      return `<div class="achievement${level ? "" : " locked"}"><strong>${level ? "🏅 " : "🔒 "}${escapeHtml(title)}${level ? ` · ${tierNames[level - 1]}` : ""}</strong><small>${escapeHtml(description)} ${escapeHtml(levelText + progressText + dateText)}</small></div>`;
     }).join("");
   }
   function renderAll() {
@@ -2079,13 +2182,13 @@
     if (tab === "quiz") renderQuiz();
     if (tab === "quickfill") renderQuickFill();
     if (tab === "dictionary") renderDictionary();
-    if (tab === "context") renderContextPractice();
-    if (tab === "choice") renderChoiceExercise();
+    if (tab === "context") { renderContextPractice(); if (contextRevealed && contextQuestion) scheduleContextAdvance(contextQuestion); }
+    if (tab === "choice") { renderChoiceExercise(); if (choiceQuestion?.answered) scheduleChoiceAdvance(choiceQuestion); }
     if (tab === "lessons") renderLessonSelect();
     if (tab === "daily") renderQueue();
   }
   function exportProgress() {
-    const payload = { exported_at: new Date().toISOString(), meanings, ratings, review_schedule: reviewSchedule, levels: levelOverrides, level_estimates: levelEstimates, hidden_words: hiddenTerms, word_edits: wordEdits, merges: mergeRules, splits: splitRules, categories: categoryAssignments, study_days: studyDays, daily_practice: dailyPractice, achievements: unlockedAchievements, current_lesson: selectedLesson, target_language: targetLanguage, quiz_stats: quizStats, note: "Tento soubor obsahuje studijní pokrok, nikoli slovní databázi." };
+    const payload = { exported_at: new Date().toISOString(), meanings, word_senses: wordSenses, answer_streak: answerStreakStats, ratings, review_schedule: reviewSchedule, levels: levelOverrides, level_estimates: levelEstimates, hidden_words: hiddenTerms, word_edits: wordEdits, merges: mergeRules, splits: splitRules, categories: categoryAssignments, study_days: studyDays, daily_practice: dailyPractice, achievements: unlockedAchievements, current_lesson: selectedLesson, target_language: targetLanguage, quiz_stats: quizStats, note: "Tento soubor obsahuje studijní pokrok, nikoli slovní databázi." };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = "sanasto_studijni_pokrok.json"; document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
     toast("Záloha pokroku byla připravena ke stažení.");
@@ -2102,7 +2205,9 @@
       demoMode = false;
       try { localStorage.setItem(KEYS.dataset, text); } catch (_) { /* import still works for current session */ }
       deckOrder = shuffle(terms.map(term => safeKey(term.lemma)));
-      cardIndex = 0; cardRevealed = false; quizQuestion = null; choiceQuestion = null; contextIndex = 0; contextRevealed = false; contextResult = null;
+      cardIndex = 0; cardRevealed = false; quizQuestion = null; choiceQuestion = null; contextIndex = 0; contextRevealed = false; contextResult = null; contextQuestion = null;
+      if (contextAutoTimer) { clearTimeout(contextAutoTimer); contextAutoTimer = null; }
+      if (choiceAutoTimer) { clearTimeout(choiceAutoTimer); choiceAutoTimer = null; }
       $("datasetNotice").innerHTML = `<div class="notice-copy"><span class="notice-icon">✓</span><span><strong>Slovník načten.</strong> ${number(terms.length)} lemmat${normalized.totals.days ? ` · ${number(normalized.totals.days)} denních záznamů` : ""}. Významy a hodnocení zůstávají v tomto prohlížeči.</span></div><button type="button" class="button soft" id="replaceDataBtn">Vyměnit JSON</button>`;
       $("replaceDataBtn").addEventListener("click", () => $("fileInput").click());
       $("heroNoteTitle").textContent = "Vlastní slovník je připraven";
@@ -2177,7 +2282,7 @@
   $("sortFilter").addEventListener("change", renderDictionary);
   $("nextQuizBtn").addEventListener("click", createQuizQuestion);
   $("startChoiceBtn").addEventListener("click", startChoiceExercise);
-  $("nextChoiceBtn").addEventListener("click", () => { choiceIndex++; choiceQuestion = null; startChoiceExercise(); });
+  $("nextChoiceBtn").addEventListener("click", advanceChoiceExercise);
   $("continueLessonBtn").addEventListener("click", continueLesson);
   $("closeCelebrationBtn").addEventListener("click", () => { closeLessonCelebration(); activateTab("lessons"); });
   $("includeTranslatedToggle").addEventListener("change", () => { if (quickFillController) quickFillController.abort(); quickFillGeneration++; quickFillController = null; quickFillSuggestedFor = ""; quickFillIndex = 0; renderQuickFill(); });
@@ -2190,7 +2295,18 @@
     if (event.key === "Enter") { event.preventDefault(); saveQuickFill(); }
   });
   document.addEventListener("keydown", event => {
-    if (activeTab === "quickfill" && event.key === "Escape") { event.preventDefault(); excludeQuickFill(); }
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (activeTab === "quickfill" && event.key === "Escape") { event.preventDefault(); excludeQuickFill(); return; }
+    if (activeTab === "context") {
+      if (event.key === "Enter" && contextRevealed) { event.preventDefault(); advanceContextPractice(); return; }
+      const selected = Number(event.key) - 1;
+      if (selected >= 0 && selected < 4 && !contextRevealed) { event.preventDefault(); checkContextAnswer(selected); return; }
+    }
+    if (activeTab === "choice") {
+      if (event.key === "Enter" && choiceQuestion?.answered) { event.preventDefault(); advanceChoiceExercise(); return; }
+      const selected = Number(event.key) - 1;
+      if (selected >= 0 && selected < 4 && choiceQuestion && !choiceQuestion.answered) { event.preventDefault(); checkChoiceAnswer(selected); }
+    }
   });
   $("queueList").addEventListener("click", event => {
     const button = event.target.closest("[data-jump-lemma]"); if (!button) return;
